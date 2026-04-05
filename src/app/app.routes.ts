@@ -4,10 +4,14 @@ import { LoginComponent } from './features/auth/login.component';
 import { LayoutComponent } from './features/layout.component';
 import { SalesComponent } from './features/sales/sales.component';
 import { AdminComponent } from './features/admin/admin.component';
+import { CheckoutResultComponent } from './features/customer/checkout-result.component';
 
 export const routes: Routes = [
   // Parte Pública (Cliente)
   { path: '', component: CustomerComponent },
+  { path: 'checkout/success', component: CheckoutResultComponent },
+  { path: 'checkout/failure', component: CheckoutResultComponent },
+  { path: 'checkout/pending', component: CheckoutResultComponent },
 
   // Parte Administrativa
   { path: 'admin/login', component: LoginComponent },
