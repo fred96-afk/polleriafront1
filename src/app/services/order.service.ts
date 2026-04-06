@@ -23,6 +23,10 @@ export class OrderService {
     return this.http.post<OrderResponse>(this.apiUrl, request);
   }
 
+  generateInvoice(id: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${id}/invoice`, {});
+  }
+
   deleteOrder(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }

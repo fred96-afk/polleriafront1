@@ -13,6 +13,7 @@ export interface OrderRequest {
   clientId?: number | null;
   userId: number;
   deliveryUserId?: number | null;
+  isPos?: boolean;
   details?: OrderDetailRequest[] | null;
 }
 

@@ -20,11 +20,25 @@ export class ProductService {
   }
 
   createProduct(request: ProductRequest): Observable<ProductResponse> {
-    return this.http.post<ProductResponse>(this.apiUrl, request);
+    const formData = new FormData();
+    if (request.name) formData.append('Name', request.name);
+    if (request.description) formData.append('Description', request.description);
+    formData.append('BasePrice', request.basePrice.toString());
+    if (request.categoryId) formData.append('CategoryId', request.categoryId.toString());
+    if (request.image) formData.append('Image', request.image);
+
+    return this.http.post<ProductResponse>(this.apiUrl, formData);
   }
 
   updateProduct(id: number, request: ProductRequest): Observable<void> {
-    return this.http.put<void>(`${this.apiUrl}/${id}`, request);
+    const formData = new FormData();
+    if (request.name) formData.append('Name', request.name);
+    if (request.description) formData.append('Description', request.description);
+    formData.append('BasePrice', request.basePrice.toString());
+    if (request.categoryId) formData.append('CategoryId', request.categoryId.toString());
+    if (request.image) formData.append('Image', request.image);
+
+    return this.http.put<void>(`${this.apiUrl}/${id}`, formData);
   }
 
   deleteProduct(id: number): Observable<void> {

@@ -1,79 +1,136 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-login',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   template: `
-    <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-lg">
-        <div>
-          <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Pollería "El Sabroso"
+    <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-3xl shadow-2xl border border-gray-100 relative z-10">
+        <div class="text-center">
+          <div class="flex justify-center mb-6">
+             <div class="w-20 h-20 bg-orange-600 rounded-3xl flex items-center justify-center shadow-xl shadow-orange-200 rotate-3 hover:rotate-0 transition-transform duration-300">
+                <span class="material-icons-outlined text-white text-5xl">restaurant</span>
+              </div>
+          </div>
+          <h2 class="text-4xl font-black text-gray-900 tracking-tighter mb-2 flex items-center justify-center gap-2">
+            ¡HOLA CLIENTE! <span class="material-icons-outlined text-orange-600 text-4xl">restaurant</span>
           </h2>
-          <p class="mt-2 text-center text-sm text-gray-600">
-            Inicia sesión para gestionar tus ventas
+          <p class="text-sm text-gray-500 font-medium uppercase tracking-[0.2em]">
+            Acceso a tu Cuenta Personal
           </p>
         </div>
-        <form class="mt-8 space-y-6" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-          <div class="rounded-md shadow-sm -space-y-px">
-            <div class="mb-4">
-              <label for="email-address" class="block text-sm font-medium text-gray-700">Email</label>
-              <input
-                id="email-address"
-                formControlName="email"
-                type="email"
-                required
-                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 focus:z-10 sm:text-sm"
-                placeholder="Email"
-              />
+        
+        <form class="mt-10 space-y-6" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+          <div class="space-y-5">
+            <div class="relative group">
+              <label for="email-address" class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 ml-1">Tu Email</label>
+              <div class="relative">
+                <span class="material-icons-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-600 transition-colors">alternate_email</span>
+                <input
+                  id="email-address"
+                  formControlName="email"
+                  type="email"
+                  required
+                  class="appearance-none block w-full pl-12 pr-4 py-4 border-2 border-gray-100 placeholder-gray-300 text-gray-900 rounded-2xl focus:outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/5 transition-all text-sm font-medium"
+                  placeholder="ejemplo@elsabroso.com"
+                  [class.border-red-500]="loginForm.get('email')?.touched && loginForm.get('email')?.invalid"
+                />
+              </div>
+              @if (loginForm.get('email')?.touched && loginForm.get('email')?.invalid) {
+                <p class="text-[10px] text-red-500 mt-2 font-bold uppercase tracking-wider ml-1 animate-shake">
+                  @if (loginForm.get('email')?.hasError('required')) { El email es obligatorio }
+                  @if (loginForm.get('email')?.hasError('email')) { Formato de email no válido }
+                </p>
+              }
             </div>
-            <div>
-              <label for="password" class="block text-sm font-medium text-gray-700">Contraseña</label>
-              <input
-                id="password"
-                formControlName="password"
-                type="password"
-                required
-                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-              />
+            
+            <div class="relative group">
+              <label for="password" class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 ml-1">Tu Contraseña</label>
+              <div class="relative">
+                <span class="material-icons-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-600 transition-colors">lock</span>
+                <input
+                  [type]="showPassword() ? 'text' : 'password'"
+                  id="password"
+                  formControlName="password"
+                  required
+                  class="appearance-none block w-full pl-12 pr-12 py-4 border-2 border-gray-100 placeholder-gray-300 text-gray-900 rounded-2xl focus:outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/5 transition-all text-sm font-medium"
+                  placeholder="••••••••"
+                  [class.border-red-500]="loginForm.get('password')?.touched && loginForm.get('password')?.invalid"
+                />
+                <button 
+                  type="button"
+                  (click)="showPassword.set(!showPassword())"
+                  class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <span class="material-icons-outlined text-xl">{{ showPassword() ? 'visibility_off' : 'visibility' }}</span>
+                </button>
+              </div>
+              @if (loginForm.get('password')?.touched && loginForm.get('password')?.invalid) {
+                <p class="text-[10px] text-red-500 mt-2 font-bold uppercase tracking-wider ml-1 animate-shake">
+                  La contraseña es obligatoria
+                </p>
+              }
             </div>
           </div>
 
-          @if (error()) {
-            <div class="text-red-500 text-sm text-center">
-              {{ error() }}
-            </div>
-          }
-
-          <div>
+          <div class="flex flex-col gap-6 pt-2">
             <button
               type="submit"
               [disabled]="loginForm.invalid || loading()"
-              class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50"
+              class="group relative w-full flex justify-center py-5 px-4 border-none text-xs font-black rounded-2xl text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-4 focus:ring-orange-500/20 disabled:opacity-50 transition-all shadow-xl shadow-orange-100 uppercase tracking-[0.3em]"
             >
               @if (loading()) {
-                <span class="animate-spin mr-2">...</span>
+                <span class="material-icons-outlined animate-spin mr-3">sync</span>
+                INICIANDO SESIÓN...
+              } @else {
+                INGRESAR A MI CUENTA
               }
-              Ingresar
             </button>
+            
+            <div class="flex items-center justify-between gap-4 text-[11px] font-bold uppercase tracking-widest">
+              <span class="h-px flex-1 bg-gray-100"></span>
+              <span class="text-gray-400 italic font-medium">¿Nuevo por aquí?</span>
+              <span class="h-px flex-1 bg-gray-100"></span>
+            </div>
+
+            <a 
+              routerLink="/register" 
+              class="w-full py-4 px-4 text-center rounded-2xl border-2 border-orange-50 text-orange-600 text-xs font-black hover:bg-orange-50 transition-all uppercase tracking-[0.2em]"
+            >
+              CREAR NUEVA CUENTA
+            </a>
           </div>
         </form>
       </div>
+
+      <div class="absolute -bottom-20 -left-20 w-80 h-80 bg-orange-100/50 rounded-full blur-3xl -z-0"></div>
+      <div class="absolute -top-20 -right-20 w-80 h-80 bg-red-100/30 rounded-full blur-3xl -z-0"></div>
     </div>
   `,
+  styles: [`
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      75% { transform: translateX(4px); }
+    }
+    .animate-shake {
+      animation: shake 0.2s ease-in-out 0s 2;
+    }
+  `],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly toastService = inject(ToastrService);
 
   loading = signal(false);
-  error = signal<string | null>(null);
+  showPassword = signal(false);
 
   loginForm = new FormGroup({
     email: new FormControl('', [Validators.required, Validators.email]),
@@ -83,21 +140,22 @@ export class LoginComponent {
   onSubmit() {
     if (this.loginForm.valid) {
       this.loading.set(true);
-      this.error.set(null);
-      
       const { email, password } = this.loginForm.value;
       
       this.authService.login({ email, password }).subscribe({
-        next: (response) => {
-          // Simplificación: Guardar token y navegar
-          localStorage.setItem('token', 'fake-token'); // Simulado por ahora
-          this.router.navigate(['/admin/sales']);
+        next: () => {
+          this.toastService.success('BIENVENIDO A EL SABROSO', '¡ÉXITO!');
+          setTimeout(() => {
+            this.router.navigate(['/']);
+          }, 1000);
         },
-        error: (err) => {
-          this.error.set('Credenciales inválidas');
+        error: () => {
+          this.toastService.error('EMAIL O CLAVE INCORRECTA', 'ERROR');
           this.loading.set(false);
         }
       });
+    } else {
+      this.toastService.warning('POR FAVOR, REVISA LOS CAMPOS', 'ATENCIÓN');
     }
   }
 }

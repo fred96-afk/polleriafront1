@@ -2,8 +2,16 @@ export interface ProductRequest {
   name?: string | null;
   description?: string | null;
   basePrice: number;
+  categoryId?: number | null;
+  image?: File | null;
 }
 
-export interface ProductResponse extends ProductRequest {
+export interface ProductResponse {
   id: number;
+  name?: string | null;
+  description?: string | null;
+  basePrice: number;
+  categoryId?: number | null;
+  categoryName?: string | null;
+  imageUrl?: string | null;
 }

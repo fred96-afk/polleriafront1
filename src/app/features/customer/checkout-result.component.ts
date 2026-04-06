@@ -15,7 +15,10 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
               <span class="material-icons-outlined text-4xl">check_circle</span>
             </div>
             <h1 class="text-3xl font-black text-gray-800 mb-2">¡Pago Exitoso!</h1>
-            <p class="text-gray-500 text-sm">Tu pedido ha sido procesado correctamente. ¡El pollo ya está en camino! 🍗</p>
+            <p class="text-gray-500 text-sm flex items-center justify-center gap-1">
+              Tu pedido ha sido procesado correctamente. ¡El pollo ya está en camino! 
+              <span class="material-icons-outlined text-orange-600 text-base">restaurant</span>
+            </p>
           </div>
         } @else if (status() === 'failure') {
           <div class="mb-6">
