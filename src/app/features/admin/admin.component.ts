@@ -5,16 +5,7 @@ import { RouterOutlet } from '@angular/router';
 @Component({
   selector: 'app-admin',
   imports: [CommonModule, RouterOutlet],
-  template: `
-    <div class="space-y-6">
-      <header class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-        <h1 class="text-3xl font-bold text-gray-800">Panel de Administración</h1>
-        <p class="text-gray-500">Gestiona los recursos de tu pollería</p>
-      </header>
-
-      <router-outlet></router-outlet>
-    </div>
-  `,
+  templateUrl: './admin.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminComponent {}

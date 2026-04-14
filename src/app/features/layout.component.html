@@ -1,0 +1,108 @@
+<div class="min-h-screen bg-gray-50 flex flex-col md:flex-row">
+  <!-- Top Header for Mobile -->
+  <header class="md:hidden flex items-center justify-between p-4 bg-orange-700 text-white shadow-md sticky top-0 z-40">
+    <div class="text-xl font-bold">El Gigante</div>
+    <button (click)="toggleSidebar()" class="p-2 focus:outline-none focus:ring-2 focus:ring-orange-400 rounded-md">
+      <span class="material-icons-outlined">menu</span>
+    </button>
+  </header>
+
+  <!-- Overlay for Mobile Sidebar -->
+  @if (isSidebarOpen()) {
+    <div 
+      class="fixed inset-0 bg-black/50 z-40 md:hidden transition-opacity duration-300" 
+      (click)="closeSidebar()">
+    </div>
+  }
+
+  <!-- Sidebar -->
+  <aside 
+    [class.translate-x-0]="isSidebarOpen()"
+    [class.-translate-x-full]="!isSidebarOpen()"
+    class="fixed inset-y-0 left-0 z-50 w-64 bg-orange-700 text-white shadow-2xl transition-transform duration-300 transform md:relative md:translate-x-0 md:flex-shrink-0 md:shadow-xl overflow-y-auto">
+    
+    <div class="p-6 text-2xl font-bold border-b border-orange-600 hidden md:block uppercase tracking-tighter">
+      Pollería El GIGANTE
+    </div>
+
+    <!-- User Profile Section -->
+    <div class="p-6 border-b border-orange-600 flex items-center gap-4 bg-orange-800/20">
+      <div class="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center text-orange-700 font-black shadow-inner">
+        {{ authService.displayName.charAt(0).toUpperCase() }}
+      </div>
+      <div class="flex flex-col min-w-0">
+        <span class="text-sm font-black truncate leading-none mb-1">{{ authService.displayName }}</span>
+        <span class="text-[9px] font-bold text-orange-200 uppercase tracking-[0.2em] italic">{{ authService.roleName || 'Personal' }}</span>
+      </div>
+    </div>
+    
+    <div class="p-4 md:hidden flex justify-between items-center border-b border-orange-600 mb-4">
+      <span class="text-xl font-bold">Menú</span>
+      <button (click)="closeSidebar()" class="p-1 hover:bg-orange-600 rounded">
+        <span class="material-icons-outlined">close</span>
+      </button>
+    </div>
+
+    <nav class="mt-2 flex flex-col space-y-1 px-3">
+      @if (canAccessPos()) {
+        <a routerLink="/admin/sales" routerLinkActive="bg-orange-600 shadow-md" (click)="closeSidebar()" class="flex items-center p-3 hover:bg-orange-600 rounded-lg transition-colors group">
+          <span class="material-icons-outlined mr-3 text-orange-200 group-hover:text-white transition-colors">point_of_sale</span> 
+          <span class="font-medium">Punto de Venta</span>
+        </a>
+      }
+
+      @if (canAccessAdminDashboard()) {
+        <div class="pt-6 pb-2 px-3 text-[10px] font-bold text-orange-300 uppercase tracking-[0.2em]">
+          Administración
+        </div>
+
+        <a routerLink="/admin/dashboard/products" routerLinkActive="bg-orange-600 shadow-md" (click)="closeSidebar()" class="flex items-center p-3 hover:bg-orange-600 rounded-lg transition-colors group">
+          <span class="material-icons-outlined mr-3 text-orange-200 group-hover:text-white transition-colors">inventory_2</span> 
+          <span class="font-medium">Productos</span>
+        </a>
+        <a routerLink="/admin/dashboard/categories" routerLinkActive="bg-orange-600 shadow-md" (click)="closeSidebar()" class="flex items-center p-3 hover:bg-orange-600 rounded-lg transition-colors group">
+          <span class="material-icons-outlined mr-3 text-orange-200 group-hover:text-white transition-colors">category</span> 
+          <span class="font-medium">Categorías</span>
+        </a>
+        <a routerLink="/admin/dashboard/banners" routerLinkActive="bg-orange-600 shadow-md" (click)="closeSidebar()" class="flex items-center p-3 hover:bg-orange-600 rounded-lg transition-colors group">
+          <span class="material-icons-outlined mr-3 text-orange-200 group-hover:text-white transition-colors">view_carousel</span> 
+          <span class="font-medium">Banners</span>
+        </a>
+        <a routerLink="/admin/dashboard/users" routerLinkActive="bg-orange-600 shadow-md" (click)="closeSidebar()" class="flex items-center p-3 hover:bg-orange-600 rounded-lg transition-colors group">
+          <span class="material-icons-outlined mr-3 text-orange-200 group-hover:text-white transition-colors">badge</span> 
+          <span class="font-medium">Personal</span>
+        </a>
+        <a routerLink="/admin/dashboard/clients" routerLinkActive="bg-orange-600 shadow-md" (click)="closeSidebar()" class="flex items-center p-3 hover:bg-orange-600 rounded-lg transition-colors group">
+          <span class="material-icons-outlined mr-3 text-orange-200 group-hover:text-white transition-colors">people</span> 
+          <span class="font-medium">Clientes</span>
+        </a>
+        <a routerLink="/admin/dashboard/orders" routerLinkActive="bg-orange-600 shadow-md" (click)="closeSidebar()" class="flex items-center p-3 hover:bg-orange-600 rounded-lg transition-colors group">
+          <span class="material-icons-outlined mr-3 text-orange-200 group-hover:text-white transition-colors">receipt_long</span> 
+          <span class="font-medium">Órdenes</span>
+        </a>
+        <a routerLink="/admin/dashboard/reports" routerLinkActive="bg-orange-600 shadow-md" (click)="closeSidebar()" class="flex items-center p-3 hover:bg-orange-600 rounded-lg transition-colors group">
+          <span class="material-icons-outlined mr-3 text-orange-200 group-hover:text-white transition-colors">analytics</span> 
+          <span class="font-medium">Reportes</span>
+        </a>
+      }
+
+      <div class="mt-auto pt-10 pb-4">
+        <button (click)="logout()" class="flex items-center p-3 hover:bg-red-600 rounded-lg transition-colors w-full text-left group">
+          <span class="material-icons-outlined mr-3 text-red-200 group-hover:text-white transition-colors">logout</span> 
+          <span class="font-medium">Cerrar Sesión</span>
+        </button>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- Main Content Area -->
+  <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+    <!-- Optional: Add a top bar for desktop if needed -->
+    <main class="flex-1 overflow-x-hidden overflow-y-auto p-4 sm:p-6 md:p-8 lg:p-10">
+      <!-- Breadcrumbs or page title could go here -->
+      <div class="max-w-7xl mx-auto">
+        <router-outlet></router-outlet>
+      </div>
+    </main>
+  </div>
+</div>

@@ -10,3 +10,12 @@ export interface CategoryResponse {
   description?: string | null;
   imageUrl?: string | null;
 }
+
+export interface PagedResponse<T> {
+  items: T[];
+  pageNumber: number;
+  totalPages: number;
+  totalCount: number;
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
+}

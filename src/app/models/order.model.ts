@@ -24,5 +24,6 @@ export interface OrderResponse {
   deliveryUserId?: number | null;
   details?: OrderDetailResponse[] | null;
   orderDate?: string;
-  checkoutUrl?: string; // URL de Mercado Pago
+  checkoutUrl?: string; // Mantener por si acaso
+  paymentUrl?: string;  // Esta es la que usa el backend realmente
 }

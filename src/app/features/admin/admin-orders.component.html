@@ -1,0 +1,64 @@
+<div class="p-4 sm:p-6 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden text-left">
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+    <h2 class="text-xl font-bold text-gray-800 tracking-tight">Historial de Órdenes</h2>
+    <button (click)="loadOrders()" class="w-full sm:w-auto bg-gray-100 text-gray-700 px-4 py-2.5 rounded-xl font-bold hover:bg-gray-200 transition-all flex items-center justify-center active:scale-95">
+      <span class="material-icons-outlined mr-2 text-lg">refresh</span> Actualizar
+    </button>
+  </div>
+
+  <div class="overflow-x-auto -mx-4 sm:mx-0">
+    <div class="inline-block min-w-full align-middle">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50 text-gray-500 uppercase text-[10px] tracking-wider font-bold">
+          <tr>
+            <th scope="col" class="px-4 sm:px-6 py-4 text-left">ID Órden</th>
+            <th scope="col" class="px-4 sm:px-6 py-4 text-left">Fecha</th>
+            <th scope="col" class="hidden sm:table-cell px-4 sm:px-6 py-4 text-left">Cliente</th>
+            <th scope="col" class="px-4 sm:px-6 py-4 text-left">Items</th>
+            <th scope="col" class="px-4 sm:px-6 py-4 text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-100">
+          @if (loading()) {
+            @for (i of [1,2,3,4,5]; track i) {
+              <tr class="animate-pulse">
+                <td class="px-4 sm:px-6 py-4"><div class="h-4 bg-gray-200 rounded w-12"></div></td>
+                <td class="px-4 sm:px-6 py-4"><div class="h-4 bg-gray-200 rounded w-32"></div></td>
+                <td class="hidden sm:table-cell px-4 sm:px-6 py-4"><div class="h-4 bg-gray-200 rounded w-16"></div></td>
+                <td class="px-4 sm:px-6 py-4"><div class="h-4 bg-gray-200 rounded w-20"></div></td>
+                <td class="px-4 sm:px-6 py-4 text-center"><div class="flex justify-center"><div class="h-4 bg-gray-200 rounded w-20"></div></div></td>
+              </tr>
+            }
+          } @else {
+            @for (o of orders(); track o.id) {
+              <tr class="hover:bg-gray-50 transition-colors group">
+                <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-left">
+                  <span class="font-bold text-gray-800 text-sm sm:text-base">#{{ o.id }}</span>
+                </td>
+                <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-left">
+                  <span class="text-gray-600 font-medium text-sm sm:text-base">{{ o.orderDate | date:'short' }}</span>
+                </td>
+                <td class="hidden sm:table-cell px-4 sm:px-6 py-4 whitespace-nowrap text-left">
+                  <span class="text-gray-500 text-sm font-medium">Cli: {{ o.clientId || 'Mostrador' }}</span>
+                </td>
+                <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-left">
+                  <span class="px-2.5 py-1 bg-orange-100 text-orange-700 text-[10px] font-bold rounded-md uppercase">
+                    {{ o.details?.length || 0 }} items
+                  </span>
+                </td>
+                <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-center">
+                  <div class="flex justify-center items-center gap-1 sm:gap-2">
+                    <button (click)="deleteOrder(o.id)" class="px-3 py-1.5 sm:px-4 sm:py-2 flex items-center justify-center rounded-lg text-red-600 hover:bg-red-50 transition-colors gap-1 active:scale-95">
+                      <span class="material-icons-outlined text-base sm:text-lg">cancel</span> 
+                      <span class="font-bold text-[10px] sm:text-xs uppercase">Cancelar</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

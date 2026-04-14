@@ -8,154 +8,7 @@ import { ToastrService } from 'ngx-toastr';
 @Component({
   selector: 'app-register',
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
-  template: `
-    <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-      <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-3xl shadow-2xl border border-gray-100 relative z-10">
-        <div class="text-center">
-          <div class="flex justify-center mb-6">
-             <div class="w-20 h-20 bg-orange-600 rounded-3xl flex items-center justify-center shadow-xl shadow-orange-200 -rotate-3 hover:rotate-0 transition-transform duration-300">
-                <span class="material-icons-outlined text-white text-5xl">person_add</span>
-              </div>
-          </div>
-          <h2 class="text-4xl font-black text-gray-900 tracking-tighter mb-2 flex items-center justify-center gap-2">
-            ¡ÚNETE A NOSOTROS! <span class="material-icons-outlined text-orange-600 text-4xl">restaurant</span>
-          </h2>
-          <p class="text-sm text-gray-500 font-medium uppercase tracking-[0.2em]">
-            Crea tu cuenta de cliente
-          </p>
-        </div>
-        
-        <form class="mt-10 space-y-6" [formGroup]="registerForm" (ngSubmit)="onSubmit()">
-          <div class="space-y-5">
-            <!-- Campo Nombre -->
-            <div class="relative group">
-              <label for="name" class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 ml-1">Nombre Completo</label>
-              <div class="relative">
-                <span class="material-icons-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-600 transition-colors">person</span>
-                <input
-                  id="name"
-                  formControlName="name"
-                  type="text"
-                  required
-                  class="appearance-none block w-full pl-12 pr-4 py-4 border-2 border-gray-100 placeholder-gray-300 text-gray-900 rounded-2xl focus:outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/5 transition-all text-sm font-medium"
-                  placeholder="Tu nombre y apellido"
-                  [class.border-red-500]="registerForm.get('name')?.touched && registerForm.get('name')?.invalid"
-                />
-              </div>
-              @if (registerForm.get('name')?.touched && registerForm.get('name')?.invalid) {
-                <p class="text-[10px] text-red-500 mt-2 font-bold uppercase tracking-wider ml-1 animate-shake">
-                  El nombre es obligatorio
-                </p>
-              }
-            </div>
-
-            <div class="relative group">
-              <label for="email-address" class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 ml-1">Email de Usuario</label>
-              <div class="relative">
-                <span class="material-icons-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-600 transition-colors">alternate_email</span>
-                <input
-                  id="email-address"
-                  formControlName="email"
-                  type="email"
-                  required
-                  class="appearance-none block w-full pl-12 pr-4 py-4 border-2 border-gray-100 placeholder-gray-300 text-gray-900 rounded-2xl focus:outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/5 transition-all text-sm font-medium"
-                  placeholder="ejemplo@elsabroso.com"
-                  [class.border-red-500]="registerForm.get('email')?.touched && registerForm.get('email')?.invalid"
-                />
-              </div>
-              @if (registerForm.get('email')?.touched && registerForm.get('email')?.invalid) {
-                <p class="text-[10px] text-red-500 mt-2 font-bold uppercase tracking-wider ml-1 animate-shake">
-                  @if (registerForm.get('email')?.hasError('required')) { El email es obligatorio }
-                  @if (registerForm.get('email')?.hasError('email')) { Formato de email no válido }
-                </p>
-              }
-            </div>
-            
-            <div class="relative group">
-              <label for="password" class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 ml-1">Contraseña Segura</label>
-              <div class="relative">
-                <span class="material-icons-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-600 transition-colors">lock</span>
-                <input
-                  [type]="showPassword() ? 'text' : 'password'"
-                  id="password"
-                  formControlName="password"
-                  required
-                  class="appearance-none block w-full pl-12 pr-12 py-4 border-2 border-gray-100 placeholder-gray-300 text-gray-900 rounded-2xl focus:outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/5 transition-all text-sm font-medium"
-                  placeholder="Mínimo 6 caracteres"
-                  [class.border-red-500]="registerForm.get('password')?.touched && registerForm.get('password')?.invalid"
-                />
-                <button 
-                  type="button"
-                  (click)="showPassword.set(!showPassword())"
-                  class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  <span class="material-icons-outlined text-xl">{{ showPassword() ? 'visibility_off' : 'visibility' }}</span>
-                </button>
-              </div>
-              @if (registerForm.get('password')?.touched && registerForm.get('password')?.invalid) {
-                <p class="text-[10px] text-red-500 mt-2 font-bold uppercase tracking-wider ml-1 animate-shake">
-                  @if (registerForm.get('password')?.hasError('required')) { La contraseña es obligatoria }
-                  @if (registerForm.get('password')?.hasError('minlength')) { Mínimo 6 caracteres requeridos }
-                </p>
-              }
-            </div>
-
-             <div class="relative group">
-              <label for="confirm-password" class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 ml-1">Repetir Contraseña</label>
-              <div class="relative">
-                <span class="material-icons-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-600 transition-colors">verified_user</span>
-                <input
-                  id="confirm-password"
-                  formControlName="confirmPassword"
-                  type="password"
-                  required
-                  class="appearance-none block w-full pl-12 pr-4 py-4 border-2 border-gray-100 placeholder-gray-300 text-gray-900 rounded-2xl focus:outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/5 transition-all text-sm font-medium"
-                  placeholder="••••••••"
-                  [class.border-red-500]="registerForm.get('confirmPassword')?.touched && (registerForm.get('confirmPassword')?.invalid || registerForm.hasError('mismatch'))"
-                />
-              </div>
-              @if (registerForm.get('confirmPassword')?.touched && (registerForm.get('confirmPassword')?.invalid || registerForm.hasError('mismatch'))) {
-                <p class="text-[10px] text-red-500 mt-2 font-bold uppercase tracking-wider ml-1 animate-shake">
-                   Las contraseñas no coinciden
-                </p>
-              }
-            </div>
-          </div>
-
-          <div class="flex flex-col gap-6 pt-2">
-            <button
-              type="submit"
-              [disabled]="registerForm.invalid || loading()"
-              class="group relative w-full flex justify-center py-5 px-4 border-none text-xs font-black rounded-2xl text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-4 focus:ring-orange-500/20 disabled:opacity-50 transition-all shadow-xl shadow-orange-100 uppercase tracking-[0.3em]"
-            >
-              @if (loading()) {
-                <span class="material-icons-outlined animate-spin mr-3">sync</span>
-                REGISTRANDO...
-              } @else {
-                CREAR MI CUENTA
-              }
-            </button>
-            
-            <div class="flex items-center justify-between gap-4 text-[11px] font-bold uppercase tracking-widest">
-              <span class="h-px flex-1 bg-gray-100"></span>
-              <span class="text-gray-400 italic font-medium">¿Ya eres parte de la familia?</span>
-              <span class="h-px flex-1 bg-gray-100"></span>
-            </div>
-
-            <a 
-              routerLink="/login" 
-              class="w-full py-4 px-4 text-center rounded-2xl border-2 border-orange-50 text-orange-600 text-xs font-black hover:bg-orange-50 transition-all uppercase tracking-[0.2em]"
-            >
-              VOLVER AL INICIO DE SESIÓN
-            </a>
-          </div>
-        </form>
-      </div>
-
-      <div class="absolute -bottom-20 -right-20 w-80 h-80 bg-orange-100/50 rounded-full blur-3xl -z-0"></div>
-      <div class="absolute -top-20 -left-20 w-80 h-80 bg-red-100/30 rounded-full blur-3xl -z-0"></div>
-    </div>
-  `,
+  templateUrl: './register.component.html',
   styles: [`
     @keyframes shake {
       0%, 100% { transform: translateX(0); }
@@ -192,17 +45,19 @@ export class RegisterComponent {
       this.loading.set(true);
       const { name, email, password } = this.registerForm.value;
       
-      this.authService.register({ 
+      this.authService.registerClient({ 
         name, 
         email, 
         password, 
         roleId: 4 // 4 = Cliente
       }).subscribe({
         next: () => {
-          this.toastService.success('TU REGISTRO FUE EXITOSO', '¡CUENTA CREADA!');
+          this.toastService.success('POR FAVOR, REVISA TU CORREO PARA VERIFICAR TU CUENTA', '¡REGISTRO EXITOSO!', {
+            timeOut: 5000
+          });
           setTimeout(() => {
             this.router.navigate(['/login']);
-          }, 1500);
+          }, 2000);
         },
         error: () => {
           this.toastService.error('NO SE PUDO COMPLETAR EL REGISTRO', 'ERROR');

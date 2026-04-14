@@ -1,0 +1,95 @@
+<div class="space-y-8 animate-in fade-in duration-500 text-left">
+  <!-- Header -->
+  <header class="bg-white p-8 rounded-[32px] shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+    <div class="space-y-1">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 bg-orange-100 rounded-2xl flex items-center justify-center text-orange-600">
+          <span class="material-icons-outlined text-3xl">analytics</span>
+        </div>
+        <h1 class="text-3xl font-black text-gray-900 tracking-tighter uppercase">Reportes de Ventas</h1>
+      </div>
+      <p class="text-gray-500 font-medium italic ml-15">Analiza el rendimiento de tu pollería en tiempo real</p>
+    </div>
+  </header>
+
+  <!-- Report Generator Card -->
+  <div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-[40px] shadow-xl border border-gray-100 overflow-hidden">
+      <div class="p-8 md:p-12 space-y-10">
+        <div class="text-center space-y-2">
+          <h2 class="text-xl font-black text-gray-800 uppercase tracking-tight">Rango de Fechas</h2>
+          <p class="text-sm text-gray-400 font-bold uppercase tracking-widest">Selecciona el periodo que deseas exportar</p>
+        </div>
+
+        <form [formGroup]="reportForm" class="space-y-10">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Start Date -->
+            <div class="space-y-3">
+              <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] ml-2">Fecha de Inicio</label>
+              <div class="relative group">
+                <span class="material-icons-outlined absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-600 transition-colors">calendar_today</span>
+                <input 
+                  type="date" 
+                  formControlName="startDate"
+                  class="w-full pl-14 pr-6 py-5 bg-gray-50 border-2 border-transparent rounded-3xl focus:bg-white focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/5 outline-none transition-all font-bold text-gray-800"
+                >
+              </div>
+            </div>
+
+            <!-- End Date -->
+            <div class="space-y-3">
+              <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] ml-2">Fecha de Fin</label>
+              <div class="relative group">
+                <span class="material-icons-outlined absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-600 transition-colors">event</span>
+                <input 
+                  type="date" 
+                  formControlName="endDate"
+                  class="w-full pl-14 pr-6 py-5 bg-gray-50 border-2 border-transparent rounded-3xl focus:bg-white focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/5 outline-none transition-all font-bold text-gray-800"
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row gap-6 pt-4">
+            <!-- PDF Button -->
+            <button 
+              type="button"
+              (click)="downloadPdf()"
+              [disabled]="reportForm.invalid || loadingPdf()"
+              class="flex-1 bg-gray-900 text-white py-6 rounded-[28px] font-black hover:bg-red-600 transition-all shadow-2xl shadow-gray-200 flex items-center justify-center gap-4 group active:scale-95 disabled:opacity-50 uppercase tracking-widest text-xs"
+            >
+              @if (loadingPdf()) {
+                <div class="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
+                <span>Generando...</span>
+              } @else {
+                <span class="material-icons-outlined text-2xl group-hover:scale-110 transition-transform">picture_as_pdf</span>
+                Descargar Reporte PDF
+              }
+            </button>
+
+            <!-- Excel Button -->
+            <button 
+              type="button"
+              (click)="downloadExcel()"
+              [disabled]="reportForm.invalid || loadingExcel()"
+              class="flex-1 bg-green-600 text-white py-6 rounded-[28px] font-black hover:bg-green-700 transition-all shadow-2xl shadow-green-100 flex items-center justify-center gap-4 group active:scale-95 disabled:opacity-50 uppercase tracking-widest text-xs"
+            >
+              @if (loadingExcel()) {
+                <div class="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
+                <span>Generando...</span>
+              } @else {
+                <span class="material-icons-outlined text-2xl group-hover:scale-110 transition-transform">table_view</span>
+                Descargar Reporte EXCEL
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Info Footer -->
+      <div class="bg-gray-50 p-6 border-t border-gray-100 text-center">
+        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em]">Los reportes incluyen detalles de productos, clientes y totales del periodo seleccionado.</p>
+      </div>
+    </div>
+  </div>
+</div>

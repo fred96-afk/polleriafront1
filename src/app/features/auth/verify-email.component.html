@@ -1,0 +1,41 @@
+<div class="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+  <div class="max-w-md w-full bg-white rounded-[40px] shadow-2xl overflow-hidden p-10 text-center animate-in fade-in zoom-in duration-500">
+    <div class="mb-8">
+      <div class="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6 text-orange-600">
+        @if (status() === 'loading') {
+          <span class="material-icons-outlined text-5xl animate-spin">sync</span>
+        } @else if (status() === 'success') {
+          <span class="material-icons-outlined text-5xl">verified</span>
+        } @else {
+          <span class="material-icons-outlined text-5xl">error_outline</span>
+        }
+      </div>
+
+      @if (status() === 'loading') {
+        <h2 class="text-3xl font-black text-gray-800 tracking-tighter uppercase mb-4">Verificando...</h2>
+        <p class="text-gray-500 font-medium">Estamos validando tu correo electrónico. Un momento por favor.</p>
+      } @else if (status() === 'success') {
+        <h2 class="text-3xl font-black text-green-600 tracking-tighter uppercase mb-4">¡Correo Verificado!</h2>
+        <p class="text-gray-500 font-medium mb-8">Tu cuenta ha sido activada exitosamente. Ya puedes disfrutar de todos nuestros servicios.</p>
+        <a 
+          routerLink="/login" 
+          class="inline-block w-full bg-orange-600 text-white py-4 rounded-2xl font-black hover:bg-orange-700 transition-all shadow-xl shadow-orange-200 active:scale-95 uppercase tracking-widest text-sm"
+        >
+          Ir al Login
+        </a>
+      } @else {
+        <h2 class="text-3xl font-black text-red-600 tracking-tighter uppercase mb-4">Error de Validación</h2>
+        <p class="text-gray-500 font-medium mb-8">{{ errorMessage() }}</p>
+        <div class="space-y-4">
+          <a 
+            routerLink="/login" 
+            class="inline-block w-full bg-gray-100 text-gray-700 py-4 rounded-2xl font-black hover:bg-gray-200 transition-all active:scale-95 uppercase tracking-widest text-sm"
+          >
+            Volver al Login
+          </a>
+          <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">¿El problema persiste? Contacta a soporte.</p>
+        </div>
+      }
+    </div>
+  </div>
+</div>

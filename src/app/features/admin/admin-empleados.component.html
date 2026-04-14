@@ -1,0 +1,205 @@
+<div class="p-4 sm:p-6 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden text-left">
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+    <h2 class="text-xl font-bold text-gray-800 tracking-tight">Directorio de Empleados</h2>
+    <button 
+      (click)="openModal()"
+      class="w-full sm:w-auto bg-green-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-green-700 transition-all flex items-center justify-center shadow-lg shadow-green-100 active:scale-95"
+    >
+      <span class="material-icons-outlined mr-2">badge</span> Registrar Empleado
+    </button>
+  </div>
+
+  <div class="overflow-x-auto -mx-4 sm:mx-0">
+    <div class="inline-block min-w-full align-middle">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50 text-gray-500 uppercase text-[10px] tracking-wider font-bold">
+          <tr>
+            <th scope="col" class="px-4 sm:px-6 py-4 text-left">Empleado</th>
+            <th scope="col" class="hidden sm:table-cell px-4 sm:px-6 py-4 text-left">Cargo</th>
+            <th scope="col" class="hidden md:table-cell px-4 sm:px-6 py-4 text-left">Documento</th>
+            <th scope="col" class="px-4 sm:px-6 py-4 text-left">Usuario Sis.</th>
+            <th scope="col" class="px-4 sm:px-6 py-4 text-center">Estado</th>
+            <th scope="col" class="px-4 sm:px-6 py-4 text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-100">
+          @if (loading()) {
+            @for (i of [1,2,3,4,5]; track i) {
+              <tr class="animate-pulse">
+                <td class="px-4 sm:px-6 py-4"><div class="h-4 bg-gray-200 rounded w-32"></div></td>
+                <td class="hidden sm:table-cell px-4 sm:px-6 py-4"><div class="h-4 bg-gray-200 rounded w-24"></div></td>
+                <td class="hidden md:table-cell px-4 sm:px-6 py-4"><div class="h-4 bg-gray-200 rounded w-24"></div></td>
+                <td class="px-4 sm:px-6 py-4"><div class="h-4 bg-gray-200 rounded w-20"></div></td>
+                <td class="px-4 sm:px-6 py-4 text-center"><div class="h-4 bg-gray-200 rounded w-8 mx-auto"></div></td>
+                <td class="px-4 sm:px-6 py-4 text-center"><div class="flex justify-center gap-2"><div class="w-8 h-8 bg-gray-200 rounded"></div></div></td>
+              </tr>
+            }
+          } @else {
+            @for (e of empleadosWithDetails(); track e.id) {
+              <tr class="hover:bg-gray-50 transition-colors group">
+                <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-left">
+                  <div class="flex flex-col">
+                    <span class="font-bold text-gray-800 text-sm sm:text-base">{{ e.nombre }}</span>
+                    <span class="sm:hidden text-[10px] text-orange-600 font-bold uppercase tracking-wider mt-0.5">
+                      {{ e.cargoName || 'Sin Cargo' }}
+                    </span>
+                  </div>
+                </td>
+                <td class="hidden sm:table-cell px-4 sm:px-6 py-4 whitespace-nowrap text-left">
+                  <span class="px-2.5 py-1 bg-purple-100 text-purple-700 text-[10px] font-bold rounded-md uppercase tracking-wide">
+                    {{ e.cargoName || 'N/A' }}
+                  </span>
+                </td>
+                <td class="hidden md:table-cell px-4 sm:px-6 py-4 text-left">
+                  <span class="text-gray-600 font-medium text-xs sm:text-sm">{{ e.docTypeName }}: {{ e.numeroDocumento }}</span>
+                </td>
+                <td class="px-4 sm:px-6 py-4 text-left">
+                  <span class="text-gray-800 font-bold text-sm">@{{ e.nombreUsuario }}</span>
+                </td>
+                <td class="px-4 sm:px-6 py-4 text-center">
+                  @if (e.estadoLogico) {
+                    <span class="text-green-600 material-icons-outlined">check_circle</span>
+                  } @else {
+                    <span class="text-red-600 material-icons-outlined">cancel</span>
+                  }
+                </td>
+                <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
+                  <div class="flex justify-center items-center gap-1 sm:gap-2">
+                    <button (click)="openModal(e)" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg text-blue-600 hover:bg-blue-50 transition-colors" title="Editar">
+                      <span class="material-icons-outlined text-lg sm:text-xl">edit</span>
+                    </button>
+                    <button (click)="deleteEmpleado(e.id)" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg text-red-600 hover:bg-red-50 transition-colors" title="Inhabilitar">
+                      <span class="material-icons-outlined text-lg sm:text-xl">block</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal Empleado -->
+  @if (showModal()) {
+    <div class="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg my-8 overflow-hidden animate-in fade-in zoom-in slide-in-from-bottom-4 duration-300">
+        <div class="p-5 sm:p-6 border-b flex justify-between items-center bg-gray-50 sticky top-0 z-10">
+          <div>
+            <h3 class="text-lg sm:text-xl font-black text-gray-800">
+              {{ editingId() ? 'Editar Empleado' : 'Registrar Empleado' }}
+            </h3>
+            <p class="text-xs text-gray-500 mt-0.5 font-medium">Ficha del trabajador</p>
+          </div>
+          <button (click)="closeModal()" class="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-200 hover:text-gray-600 transition-colors">
+            <span class="material-icons-outlined">close</span>
+          </button>
+        </div>
+
+        <form [formGroup]="empleadoForm" (ngSubmit)="saveEmpleado()" class="p-5 sm:p-6 space-y-5">
+          <div class="space-y-1.5">
+            <label class="block text-xs font-black text-gray-500 uppercase tracking-widest ml-1">Nombre Completo</label>
+            <input 
+              type="text" 
+              formControlName="nombre"
+              class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all text-sm sm:text-base font-medium uppercase"
+            >
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div class="space-y-1.5">
+              <label class="block text-xs font-black text-gray-500 uppercase tracking-widest ml-1">Cargo</label>
+              <select 
+                formControlName="idCargo"
+                class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all text-sm sm:text-base font-medium appearance-none"
+              >
+                <option [ngValue]="null">Elegir...</option>
+                @for (c of cargos(); track c.id) {
+                  <option [ngValue]="c.id">{{ c.nombre }}</option>
+                }
+              </select>
+            </div>
+            
+            <div class="space-y-1.5">
+              <label class="block text-xs font-black text-gray-500 uppercase tracking-widest ml-1">Tipo de Documento</label>
+              <select 
+                formControlName="idTipoDocumento"
+                class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all text-sm sm:text-base font-medium appearance-none"
+              >
+                <option [ngValue]="null">Elegir...</option>
+                @for (doc of documentTypes(); track doc.id) {
+                  <option [ngValue]="doc.id">{{ doc.nombre }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div class="space-y-1.5">
+              <label class="block text-xs font-black text-gray-500 uppercase tracking-widest ml-1">Nro. Documento</label>
+              <input 
+                type="text" 
+                formControlName="numeroDocumento"
+                maxlength="15"
+                class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all text-sm sm:text-base font-medium"
+              >
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="block text-xs font-black text-gray-500 uppercase tracking-widest ml-1">Usuario Sistema</label>
+              <input 
+                type="text" 
+                formControlName="nombreUsuario"
+                placeholder="Ej: jperez"
+                class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all text-sm sm:text-base font-bold text-gray-800"
+              >
+            </div>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="block text-xs font-black text-gray-500 uppercase tracking-widest ml-1">Contraseña {{ editingId() ? '(Opcional)' : '' }}</label>
+            <input 
+              type="password" 
+              formControlName="contrasena"
+              placeholder="Mínimo 6 caracteres"
+              class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all text-sm sm:text-base font-medium"
+            >
+          </div>
+
+          <div class="flex items-center space-x-3">
+            <input 
+              type="checkbox" 
+              formControlName="estadoLogico"
+              id="estadoLogicoEmp"
+              class="w-5 h-5 text-orange-600 rounded focus:ring-orange-500 border-gray-300"
+            >
+            <label for="estadoLogicoEmp" class="text-sm font-bold text-gray-700">Empleado Activo (Acceso Permitido)</label>
+          </div>
+
+          <div class="pt-4 flex flex-col sm:flex-row gap-3">
+            <button 
+              type="button" 
+              (click)="closeModal()"
+              class="order-2 sm:order-1 flex-1 px-4 py-3 rounded-xl font-bold border border-gray-200 text-gray-600 hover:bg-gray-50 active:scale-95 transition-all text-sm sm:text-base"
+            >
+              Cancelar
+            </button>
+            <button 
+              type="submit" 
+              [disabled]="empleadoForm.invalid || loading()"
+              class="order-1 sm:order-2 flex-[1.5] px-4 py-3 rounded-xl font-black bg-orange-600 text-white hover:bg-orange-700 disabled:opacity-50 shadow-xl shadow-orange-200 active:scale-95 transition-all text-sm sm:text-base flex items-center justify-center gap-2"
+            >
+              @if (loading()) {
+                <div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              } @else {
+                <span class="material-icons-outlined text-lg">save</span>
+                <span>{{ editingId() ? 'Actualizar' : 'Guardar' }}</span>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

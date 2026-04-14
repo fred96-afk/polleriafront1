@@ -8,102 +8,7 @@ import { ToastrService } from 'ngx-toastr';
 @Component({
   selector: 'app-admin-login',
   imports: [CommonModule, ReactiveFormsModule],
-  template: `
-    <div class="min-h-screen flex items-center justify-center bg-slate-900 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-      <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-3xl shadow-2xl relative z-10 border-t-8 border-orange-600">
-        <div class="text-center">
-          <div class="flex justify-center mb-6">
-             <div class="w-20 h-20 bg-slate-800 rounded-3xl flex items-center justify-center shadow-xl shadow-black/20">
-                <span class="material-icons-outlined text-orange-500 text-5xl">shield</span>
-              </div>
-          </div>
-          <h2 class="text-3xl font-black text-slate-900 tracking-tighter mb-2 uppercase">
-            Acceso Restringido
-          </h2>
-          <p class="text-[10px] text-slate-400 font-black uppercase tracking-[0.3em]">
-            Portal de Administración
-          </p>
-        </div>
-        
-        <form class="mt-10 space-y-6" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-          <div class="space-y-5">
-            <div class="relative group">
-              <label for="email-address" class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 ml-1">ID Administrador (Email)</label>
-              <div class="relative">
-                <span class="material-icons-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-orange-600 transition-colors">account_circle</span>
-                <input
-                  id="email-address"
-                  formControlName="email"
-                  type="email"
-                  required
-                  class="appearance-none block w-full pl-12 pr-4 py-4 border-2 border-slate-100 placeholder-slate-300 text-slate-900 rounded-2xl focus:outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/5 transition-all text-sm font-bold"
-                  placeholder="admin@elsabroso.com"
-                  [class.border-red-500]="loginForm.get('email')?.touched && loginForm.get('email')?.invalid"
-                />
-              </div>
-              @if (loginForm.get('email')?.touched && loginForm.get('email')?.invalid) {
-                <p class="text-[10px] text-red-500 mt-2 font-bold uppercase tracking-wider ml-1 animate-shake">
-                  Email de administrador no válido o incompleto
-                </p>
-              }
-            </div>
-            
-            <div class="relative group">
-              <label for="password" class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 ml-1">Clave de Seguridad</label>
-              <div class="relative">
-                <span class="material-icons-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-orange-600 transition-colors">vpn_key</span>
-                <input
-                  [type]="showPassword() ? 'text' : 'password'"
-                  id="password"
-                  formControlName="password"
-                  required
-                  class="appearance-none block w-full pl-12 pr-12 py-4 border-2 border-slate-100 placeholder-slate-300 text-slate-900 rounded-2xl focus:outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/5 transition-all text-sm font-bold"
-                  placeholder="••••••••"
-                  [class.border-red-500]="loginForm.get('password')?.touched && loginForm.get('password')?.invalid"
-                />
-                <button 
-                  type="button"
-                  (click)="showPassword.set(!showPassword())"
-                  class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-600 transition-colors"
-                >
-                  <span class="material-icons-outlined text-xl">{{ showPassword() ? 'visibility_off' : 'visibility' }}</span>
-                </button>
-              </div>
-              @if (loginForm.get('password')?.touched && loginForm.get('password')?.invalid) {
-                <p class="text-[10px] text-red-500 mt-2 font-bold uppercase tracking-wider ml-1 animate-shake">
-                  Clave de seguridad obligatoria
-                </p>
-              }
-            </div>
-          </div>
-
-          <div class="pt-2">
-            <button
-              type="submit"
-              [disabled]="loginForm.invalid || loading()"
-              class="group relative w-full flex justify-center py-5 px-4 border-none text-xs font-black rounded-2xl text-white bg-slate-900 hover:bg-black focus:outline-none focus:ring-4 focus:ring-slate-500/20 disabled:opacity-50 transition-all shadow-xl shadow-black/10 uppercase tracking-[0.3em]"
-            >
-              @if (loading()) {
-                <span class="material-icons-outlined animate-spin mr-3">sync</span>
-                VERIFICANDO...
-              } @else {
-                INICIAR SESIÓN ADMIN
-              }
-            </button>
-          </div>
-
-          <div class="text-center">
-            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed">
-              Este es un sistema privado.<br>El acceso no autorizado está prohibido.
-            </p>
-          </div>
-        </form>
-      </div>
-
-      <div class="absolute -bottom-20 -left-20 w-96 h-96 bg-orange-600/10 rounded-full blur-3xl -z-0"></div>
-      <div class="absolute -top-20 -right-20 w-96 h-96 bg-slate-700/50 rounded-full blur-3xl -z-0"></div>
-    </div>
-  `,
+  templateUrl: './admin-login.component.html',
   styles: [`
     @keyframes shake {
       0%, 100% { transform: translateX(0); }
@@ -134,12 +39,27 @@ export class AdminLoginComponent {
       this.loading.set(true);
       const { email, password } = this.loginForm.value;
       
-      this.authService.login({ email, password }).subscribe({
+      this.authService.adminLogin({ email, password }).subscribe({
         next: () => {
-          this.toastService.success('ENTRANDO AL PANEL DE CONTROL', 'ACCESO CONCEDIDO');
-          setTimeout(() => {
-            this.router.navigate(['/admin/sales']);
-          }, 1000);
+          if (this.authService.canAccessAdminDashboard()) {
+            this.toastService.success('ENTRANDO AL PANEL DE CONTROL', 'ACCESO CONCEDIDO');
+            setTimeout(() => {
+              this.router.navigate(['/admin/dashboard/products']);
+            }, 1000);
+            return;
+          }
+
+          if (this.authService.canAccessPos()) {
+            this.toastService.success('ENTRANDO AL POS', 'ACCESO CONCEDIDO');
+            setTimeout(() => {
+              this.router.navigate(['/admin/sales']);
+            }, 1000);
+            return;
+          }
+
+          this.authService.logout();
+          this.toastService.error('TU ROL NO TIENE ACCESO A ESTE MÓDULO', 'ACCESO DENEGADO');
+          this.loading.set(false);
         },
         error: () => {
           this.toastService.error('CREDENCIALES DE ADMIN INVÁLIDAS', 'ACCESO DENEGADO');

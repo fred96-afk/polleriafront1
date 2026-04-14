@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { enviroment } from '../../enviroments/enviroments.development';
-import { AuthResponse, LoginRequest, UserRequest } from '../models/auth.model';
+import { AuthResponse, LoginRequest, UserRequest, ForgotPasswordRequest, ResetPasswordRequest } from '../models/auth.model';
 import { Observable, tap } from 'rxjs';
 import { jwtDecode } from 'jwt-decode';
 
@@ -10,10 +10,19 @@ interface UserToken {
   nameid?: string;
   sub?: string;
   id?: string;
+  unique_name?: string;
+  given_name?: string;
+  name?: string;
+  roleId?: string | number;
+  RoleId?: string | number;
   'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'?: string;
   email?: string;
   'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'?: string;
+  'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'?: string;
+  'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname'?: string;
   role?: string;
+  Role?: string;
+  'http://schemas.microsoft.com/ws/2008/06/identity/claims/role'?: string;
   [key: string]: any;
 }
 
@@ -28,45 +37,84 @@ export class AuthService {
   
   currentUser = computed(() => {
     const t = this.token();
-    console.log('Token actual en localStorage:', t ? 'Presente' : 'No encontrado');
     if (!t || t === 'undefined' || t === 'null') return null;
     try {
-      const decoded = jwtDecode<UserToken>(t);
-      console.log('Token decodificado exitosamente:', decoded);
-      return decoded;
+      return jwtDecode<UserToken>(t);
     } catch (e) {
-      console.error('Error crítico decodificando token:', e);
+      console.error('Error decodificando token:', e);
       return null;
     }
   });
 
+  get roleName(): string | null {
+    const user = this.currentUser();
+    if (!user) return null;
+
+    const role = user['role'] || 
+                 user['Role'] || 
+                 user['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ||
+                 user['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/role'];
+
+    return typeof role === 'string' && role.trim() !== '' ? role.trim() : null;
+  }
+
+  get displayName(): string {
+    const user = this.currentUser();
+    if (!user) return 'Usuario';
+
+    const candidateName = user['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ||
+      user['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname'] ||
+      user.name ||
+      user.unique_name ||
+      user.given_name;
+
+    if (typeof candidateName === 'string' && candidateName.trim() !== '') {
+      return candidateName.trim();
+    }
+
+    const candidateEmail = user['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] ||
+      user.email;
+
+    if (typeof candidateEmail === 'string' && candidateEmail.includes('@')) {
+      return candidateEmail.split('@')[0];
+    }
+
+    return 'Usuario';
+  }
+
+  get roleId(): number | null {
+    const user = this.currentUser();
+    if (!user) return null;
+
+    const rawRoleId = user['roleId'] ?? 
+                      user['RoleId'] ?? 
+                      user['roleid'] ??
+                      user['http://schemas.microsoft.com/ws/2008/06/identity/claims/roleid'];
+
+    if (typeof rawRoleId === 'number' && Number.isFinite(rawRoleId)) {
+      return rawRoleId;
+    }
+
+    if (typeof rawRoleId === 'string' && rawRoleId.trim() !== '') {
+      const parsed = Number(rawRoleId);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    return null;
+  }
+
   get userId(): number | null {
     const user = this.currentUser();
-    if (!user) {
-      console.warn('No hay usuario decodificado para extraer el ID');
-      return null;
-    }
+    if (!user) return null;
 
-    // Priorizar la clave larga de .NET que contiene el ID numérico ("4")
     const rawId = user['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] ||
-                  user.nameid || 
-                  user.id ||
-                  user.sub; // sub suele ser el email en .NET, dejarlo al final
-
-    console.log('ID extraído (raw):', rawId);
-    
-    if (!rawId) {
-      console.error('No se encontró ninguna clave de ID compatible en el token. Claves disponibles:', Object.keys(user));
-      return null;
-    }
+                  user['nameid'] || 
+                  user['id'] ||
+                  user['Id'] ||
+                  user['sub'];
 
     const numericId = parseInt(rawId, 10);
-    if (isNaN(numericId)) {
-      console.error('El ID extraído no es un número válido:', rawId);
-      return null;
-    }
-
-    return numericId;
+    return isNaN(numericId) ? null : numericId;
   }
 
   login(request: LoginRequest): Observable<AuthResponse> {
@@ -79,8 +127,32 @@ export class AuthService {
     );
   }
 
-  register(request: UserRequest): Observable<any> {
-    return this.http.post(`${this.apiUrl}/register`, request);
+  adminLogin(request: LoginRequest): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/adminlogin`, request).pipe(
+      tap(response => {
+        if (response.token) {
+          this.setToken(response.token);
+        }
+      })
+    );
+  }
+
+  registerClient(request: UserRequest): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/registerclient`, request);
+  }
+
+  verifyEmail(token: string): Observable<void> {
+    return this.http.get<void>(`${this.apiUrl}/verify-email`, {
+      params: { token }
+    });
+  }
+
+  forgotPassword(request: ForgotPasswordRequest): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/forgot-password`, request);
+  }
+
+  resetPassword(request: ResetPasswordRequest): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/reset-password`, request);
   }
 
   logout() {
@@ -95,5 +167,32 @@ export class AuthService {
 
   isAuthenticated(): boolean {
     return !!this.token();
+  }
+
+  isAdministrator(): boolean {
+    const name = this.roleName?.toLowerCase() || '';
+    const id = this.roleId;
+    return name.includes('admin') || id === 1;
+  }
+
+  isWaiter(): boolean {
+    const name = this.roleName?.toLowerCase() || '';
+    const id = this.roleId;
+    return name.includes('mozo') || name.includes('waiter') || id === 2;
+  }
+
+  isDelivery(): boolean {
+    const name = this.roleName?.toLowerCase() || '';
+    const id = this.roleId;
+    return name.includes('delivery') || id === 3;
+  }
+
+  canAccessAdminDashboard(): boolean {
+    return this.isAdministrator();
+  }
+
+  canAccessPos(): boolean {
+    // Permitir acceso al POS tanto a mozos como a administradores
+    return this.isWaiter() || this.isAdministrator();
   }
 }

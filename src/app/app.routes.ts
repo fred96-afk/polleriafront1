@@ -2,6 +2,9 @@ import { Routes } from '@angular/router';
 import { CustomerComponent } from './features/customer/customer.component';
 import { LoginComponent } from './features/auth/login.component';
 import { RegisterComponent } from './features/auth/register.component';
+import { ForgotPasswordComponent } from './features/auth/forgot-password.component';
+import { ResetPasswordComponent } from './features/auth/reset-password.component';
+import { VerifyEmailComponent } from './features/auth/verify-email.component';
 import { AdminLoginComponent } from './features/auth/admin-login.component';
 import { LayoutComponent } from './features/layout.component';
 import { SalesComponent } from './features/sales/sales.component';
@@ -12,12 +15,20 @@ import { AdminProductsComponent } from './features/admin/admin-products.componen
 import { AdminClientsComponent } from './features/admin/admin-clients.component';
 import { AdminOrdersComponent } from './features/admin/admin-orders.component';
 import { AdminCategoriesComponent } from './features/admin/admin-categories.component';
+import { AdminBannersComponent } from './features/admin/admin-banners.component';
+import { AdminUsersComponent } from './features/admin/admin-users.component';
+import { AdminEmpleadosComponent } from './features/admin/admin-empleados.component';
+import { AdminReportsComponent } from './features/admin/admin-reports.component';
+import { adminDashboardGuard, internalAccessGuard, posGuard } from './guards/role.guard';
 
 export const routes: Routes = [
   // Parte Pública (Cliente)
   { path: '', component: CustomerComponent },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
+  { path: 'forgot-password', component: ForgotPasswordComponent },
+  { path: 'reset-password', component: ResetPasswordComponent },
+  { path: 'verify-email', component: VerifyEmailComponent },
   { path: 'checkout/success', component: CheckoutResultComponent },
   { path: 'checkout/failure', component: CheckoutResultComponent },
   { path: 'checkout/pending', component: CheckoutResultComponent },
@@ -27,20 +38,26 @@ export const routes: Routes = [
   {
     path: 'admin',
     component: LayoutComponent,
+    canActivate: [internalAccessGuard],
     children: [
-      { path: 'sales', component: SalesComponent },
+      { path: 'sales', component: SalesComponent, canActivate: [posGuard] },
       { 
         path: 'dashboard', 
         component: AdminComponent,
+        canActivate: [adminDashboardGuard],
         children: [
           { path: 'products', component: AdminProductsComponent },
           { path: 'categories', component: AdminCategoriesComponent },
+          { path: 'banners', component: AdminBannersComponent },
+          { path: 'users', component: AdminUsersComponent },
+          { path: 'empleados', component: AdminEmpleadosComponent },
           { path: 'clients', component: AdminClientsComponent },
           { path: 'orders', component: AdminOrdersComponent },
+          { path: 'reports', component: AdminReportsComponent },
           { path: '', redirectTo: 'products', pathMatch: 'full' }
         ]
       },
-      { path: '', redirectTo: 'sales', pathMatch: 'full' }
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },
 

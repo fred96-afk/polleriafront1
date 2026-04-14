@@ -1,0 +1,216 @@
+<div class="space-y-4 sm:space-y-6">
+  <!-- Header Section -->
+  <section class="p-4 sm:p-6 bg-white rounded-xl shadow-sm border border-gray-100">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <div class="space-y-2 sm:space-y-3">
+        <div>
+          <h2 class="text-lg sm:text-xl font-bold text-gray-800 tracking-tight">Personal Administrativo</h2>
+          <p class="text-xs sm:text-sm text-gray-500 mt-0.5">
+            Crea usuarios del panel y muestra solo roles administrativos.
+          </p>
+        </div>
+
+        <div class="flex flex-wrap gap-1.5 sm:gap-2">
+          @for (role of administrativeRoles; track role.id) {
+            <span class="px-2.5 sm:px-3 py-1 rounded-md sm:rounded-full bg-orange-100 text-orange-700 text-[10px] sm:text-xs font-bold uppercase tracking-wide">
+              {{ role.name }}
+            </span>
+          }
+        </div>
+      </div>
+
+      <button
+        (click)="openModal()"
+        class="w-full lg:w-auto bg-green-600 text-white px-4 py-2.5 sm:py-2 rounded-xl sm:rounded-lg font-bold hover:bg-green-700 transition-all flex items-center justify-center shadow-lg shadow-green-100 lg:shadow-none active:scale-95"
+      >
+        <span class="material-icons-outlined mr-2 text-lg sm:text-base">person_add</span>
+        Nuevo Usuario
+      </button>
+    </div>
+  </section>
+
+  <!-- Table Section -->
+  <section class="p-4 sm:p-6 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-6">
+      <div>
+        <h3 class="text-base sm:text-lg font-bold text-gray-800">Usuarios del Staff</h3>
+        <p class="text-xs sm:text-sm text-gray-500 mt-0.5">Administrador, mozo y delivery</p>
+      </div>
+
+      <button
+        (click)="loadUsers()"
+        [disabled]="loading()"
+        class="w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-xl sm:rounded-lg border border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 disabled:opacity-50 transition-colors flex items-center justify-center gap-2 active:scale-95"
+      >
+        @if (loading()) {
+          <div class="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+        } @else {
+          <span class="material-icons-outlined text-sm sm:text-base">refresh</span>
+        }
+        <span class="text-sm sm:text-base">Recargar</span>
+      </button>
+    </div>
+
+    @if (listError()) {
+      <div class="mb-4 sm:mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs sm:text-sm text-red-700 flex items-start gap-2">
+        <span class="material-icons-outlined text-red-500">error_outline</span>
+        <p class="mt-0.5">{{ listError() }}</p>
+      </div>
+    }
+
+    <!-- Responsive Table Container -->
+    <div class="overflow-x-auto -mx-4 sm:mx-0">
+      <div class="inline-block min-w-full align-middle">
+        <table class="min-w-full divide-y divide-gray-200 text-left">
+          <thead class="bg-gray-50 text-gray-500 uppercase text-[10px] tracking-wider font-bold">
+            <tr>
+              <th scope="col" class="px-4 sm:px-6 py-4">Usuario</th>
+              <th scope="col" class="hidden sm:table-cell px-4 sm:px-6 py-4">Correo</th>
+              <th scope="col" class="px-4 sm:px-6 py-4 text-right sm:text-left">Rol</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-100">
+            @if (loading()) {
+              @for (i of [1,2,3,4]; track i) {
+                <tr class="animate-pulse">
+                  <td class="px-4 sm:px-6 py-4"><div class="h-4 bg-gray-200 rounded w-3/4"></div></td>
+                  <td class="hidden sm:table-cell px-4 sm:px-6 py-4"><div class="h-4 bg-gray-200 rounded w-full"></div></td>
+                  <td class="px-4 sm:px-6 py-4 flex justify-end sm:justify-start"><div class="h-6 bg-gray-200 rounded-full w-24"></div></td>
+                </tr>
+              }
+            } @else if (users().length === 0) {
+              <tr>
+                <td colspan="3" class="px-4 sm:px-6 py-10 text-center text-gray-500">
+                  <div class="flex flex-col items-center justify-center gap-2">
+                    <span class="material-icons-outlined text-4xl text-gray-300">group_off</span>
+                    <span class="text-sm font-medium">No hay usuarios administrativos para mostrar.</span>
+                  </div>
+                </td>
+              </tr>
+            } @else {
+              @for (user of users(); track user.id) {
+                <tr class="hover:bg-gray-50 transition-colors group">
+                  <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
+                    <div class="flex flex-col">
+                      <span class="font-bold text-gray-800 text-sm sm:text-base">{{ user.name }}</span>
+                      <span class="sm:hidden text-xs text-gray-500 mt-0.5">{{ user.email }}</span>
+                    </div>
+                  </td>
+                  <td class="hidden sm:table-cell px-4 sm:px-6 py-4 whitespace-nowrap">
+                    <span class="text-gray-500 text-sm">{{ user.email }}</span>
+                  </td>
+                  <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-right sm:text-left">
+                    <span class="inline-flex items-center px-2.5 sm:px-3 py-1 rounded-md sm:rounded-full bg-slate-100 text-slate-700 text-[10px] sm:text-xs font-bold uppercase tracking-wide">
+                      {{ user.roleName }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Modal Responsivo -->
+  @if (showModal()) {
+    <div class="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+      <div class="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-xl my-8 overflow-hidden animate-in fade-in zoom-in slide-in-from-bottom-4 duration-300">
+        <div class="p-5 sm:p-6 border-b flex justify-between items-center bg-gray-50 sticky top-0 z-10">
+          <div>
+            <h3 class="text-lg sm:text-xl font-black text-gray-800 tracking-tight">Crear Usuario Administrativo</h3>
+            <p class="text-[10px] sm:text-xs text-gray-500 mt-0.5 font-bold uppercase tracking-widest">Panel Interno</p>
+          </div>
+          <button (click)="closeModal()" class="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-200 hover:text-gray-600 transition-colors">
+            <span class="material-icons-outlined">close</span>
+          </button>
+        </div>
+
+        <form [formGroup]="userForm" (ngSubmit)="saveUser()" class="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+          <div class="md:col-span-2 space-y-1.5">
+            <label class="block text-[10px] sm:text-xs font-black text-gray-500 uppercase tracking-widest ml-1">Nombre Completo</label>
+            <input
+              type="text"
+              formControlName="name"
+              class="w-full px-4 py-3 sm:py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all text-sm sm:text-base font-medium"
+              placeholder="Ej: Juan Pérez"
+            >
+          </div>
+
+          <div class="md:col-span-2 space-y-1.5">
+            <label class="block text-[10px] sm:text-xs font-black text-gray-500 uppercase tracking-widest ml-1">Correo Electrónico</label>
+            <input
+              type="email"
+              formControlName="email"
+              class="w-full px-4 py-3 sm:py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all text-sm sm:text-base font-medium"
+              placeholder="personal@polleria.com"
+            >
+          </div>
+
+          <div class="md:col-span-2 space-y-1.5">
+            <label class="block text-[10px] sm:text-xs font-black text-gray-500 uppercase tracking-widest ml-1">Rol del Sistema</label>
+            <select
+              formControlName="roleId"
+              class="w-full px-4 py-3 sm:py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all text-sm sm:text-base font-medium appearance-none"
+            >
+              @for (role of administrativeRoles; track role.id) {
+                <option [ngValue]="role.id">{{ role.name }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="block text-[10px] sm:text-xs font-black text-gray-500 uppercase tracking-widest ml-1">Contraseña</label>
+            <input
+              type="password"
+              formControlName="password"
+              class="w-full px-4 py-3 sm:py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all text-sm sm:text-base font-medium"
+              placeholder="Mín. 6 caracteres"
+            >
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="block text-[10px] sm:text-xs font-black text-gray-500 uppercase tracking-widest ml-1">Confirmar Contraseña</label>
+            <input
+              type="password"
+              formControlName="confirmPassword"
+              class="w-full px-4 py-3 sm:py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all text-sm sm:text-base font-medium"
+              placeholder="Repite la contraseña"
+            >
+          </div>
+
+          @if (userForm.hasError('mismatch') && userForm.get('confirmPassword')?.touched) {
+            <div class="md:col-span-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs sm:text-sm text-red-700 flex items-center gap-2">
+              <span class="material-icons-outlined text-red-500 text-sm">warning</span>
+              <span class="font-medium">Las contraseñas no coinciden.</span>
+            </div>
+          }
+
+          <div class="md:col-span-2 pt-4 sm:pt-6 flex flex-col sm:flex-row gap-3 sm:gap-4 mt-2">
+            <button
+              type="button"
+              (click)="closeModal()"
+              class="order-2 sm:order-1 flex-1 px-4 py-3.5 sm:py-3 rounded-xl font-bold border border-gray-200 text-gray-600 hover:bg-gray-50 active:scale-95 transition-all text-sm sm:text-base"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              [disabled]="userForm.invalid || saving()"
+              class="order-1 sm:order-2 flex-[1.5] px-4 py-3.5 sm:py-3 rounded-xl font-black bg-orange-600 text-white hover:bg-orange-700 disabled:opacity-50 shadow-xl shadow-orange-200 active:scale-95 transition-all text-sm sm:text-base flex items-center justify-center gap-2"
+            >
+              @if (saving()) {
+                <div class="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                <span>Creando...</span>
+              } @else {
+                <span class="material-icons-outlined text-base sm:text-lg">person_add</span>
+                <span>Crear Usuario</span>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>
