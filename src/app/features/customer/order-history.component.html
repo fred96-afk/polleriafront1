@@ -1,0 +1,122 @@
+<div class="min-h-screen bg-gray-50 py-12 px-4">
+  <div class="max-w-4xl mx-auto">
+    <div class="mb-8 flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-black text-gray-900 tracking-tighter uppercase">Mis Pedidos</h1>
+        <p class="text-gray-500 font-medium italic">Historial de todas tus compras en El Gigante.</p>
+      </div>
+      <a routerLink="/" class="flex items-center gap-2 text-orange-600 font-black hover:underline group">
+        <span class="material-icons-outlined group-hover:-translate-x-1 transition-transform">arrow_back</span>
+        Volver a la Carta
+      </a>
+    </div>
+
+    @if (loading()) {
+      <div class="bg-white rounded-[40px] shadow-xl p-20 text-center">
+        <div class="w-16 h-16 border-4 border-orange-100 border-t-orange-600 rounded-full animate-spin mx-auto mb-6"></div>
+        <p class="text-gray-400 font-bold uppercase tracking-widest text-xs">Sincronizando tus pedidos...</p>
+      </div>
+    } @else if (error()) {
+      <div class="bg-white rounded-[40px] shadow-xl p-20 text-center">
+        <span class="material-icons-outlined text-red-100 text-[120px] mb-6">history_toggle_off</span>
+        <h2 class="text-2xl font-black text-gray-800 mb-4">{{ error() }}</h2>
+        <button (click)="loadData()" class="bg-orange-600 text-white px-8 py-4 rounded-2xl font-black hover:bg-orange-700 transition-all uppercase tracking-widest text-sm">
+          Reintentar
+        </button>
+      </div>
+    } @else if (orders().length === 0) {
+      <div class="bg-white rounded-[40px] shadow-xl p-20 text-center">
+        <span class="material-icons-outlined text-gray-100 text-[120px] mb-6">shopping_basket</span>
+        <h2 class="text-2xl font-black text-gray-800 mb-4">Aún no tienes pedidos registrados</h2>
+        <p class="text-gray-400 mb-10 italic">¿Qué tal si pides un Pollo a la Brasa hoy?</p>
+        <a routerLink="/" class="bg-orange-600 text-white px-8 py-4 rounded-2xl font-black hover:bg-orange-700 transition-all uppercase tracking-widest text-sm inline-block">
+          Ver Nuestra Carta
+        </a>
+      </div>
+    } @else {
+      <div class="space-y-6">
+        @for (order of orders(); track order.id) {
+          <div class="bg-white rounded-[32px] shadow-sm border border-gray-100 p-8 hover:shadow-xl transition-all group">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              
+              <div class="flex items-center gap-6">
+                <div [class]="'w-16 h-16 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 ' + getStatusClass(order.status)">
+                  <span class="material-icons-outlined text-3xl">restaurant</span>
+                </div>
+                
+                <div>
+                  <div class="flex items-center gap-3 mb-1">
+                    <span class="text-xs font-black text-gray-400 uppercase tracking-widest">PEDIDO #{{ order.id }}</span>
+                    <span [class]="'px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ' + getStatusClass(order.status)">
+                      {{ getStatusLabel(order.status) }}
+                    </span>
+                  </div>
+                  <h3 class="text-xl font-black text-gray-800 tracking-tighter uppercase">
+                    {{ order.orderDate | date:'medium' }}
+                  </h3>
+                  <p class="text-sm text-gray-400 font-medium italic">
+                    {{ order.details.length }} productos — 
+                    <span class="text-orange-600 font-black not-italic">S/ {{ order.totalAmount | number:'1.2-2' }}</span>
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex gap-3">
+                <button 
+                  (click)="toggleDetails(order.id)"
+                  class="flex items-center gap-2 bg-gray-100 text-gray-700 px-4 py-4 rounded-2xl font-black hover:bg-gray-200 transition-all uppercase tracking-widest text-[10px]"
+                >
+                  <span class="material-icons-outlined text-base">
+                    {{ expandedOrderId() === order.id ? 'expand_less' : 'expand_more' }}
+                  </span>
+                  Detalles
+                </button>
+
+                <a 
+                  [routerLink]="['/order-tracking', order.id]"
+                  class="flex-1 md:flex-none flex items-center justify-center gap-2 bg-gray-900 text-white px-6 py-4 rounded-2xl font-black hover:bg-orange-600 transition-all shadow-lg shadow-gray-200 active:scale-95 uppercase tracking-widest text-xs"
+                >
+                  <span class="material-icons-outlined text-lg">local_shipping</span>
+                  Seguir
+                </a>
+              </div>
+            </div>
+
+            <!-- Detalles Expandibles -->
+            @if (expandedOrderId() === order.id) {
+              <div class="mt-8 pt-8 border-t border-dashed border-gray-100 animate-in fade-in slide-in-from-top-4 duration-300">
+                <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">Detalle de Productos</h4>
+                <div class="space-y-4">
+                  @for (detalle of order.details; track detalle.id) {
+                    <div class="flex items-center justify-between group/item">
+                      <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center overflow-hidden border border-gray-100">
+                          <span class="material-icons-outlined text-orange-200">restaurant</span>
+                        </div>
+                        <div>
+                          <p class="text-sm font-bold text-gray-800 uppercase tracking-tight">{{ detalle.productName }}</p>
+                          <p class="text-[10px] text-gray-400 font-bold">
+                            {{ detalle.quantity }} unidades 
+                            @if (detalle.sideName) {
+                               — <span class="text-orange-600 italic">con {{ detalle.sideName }}</span>
+                            }
+                            x S/ {{ detalle.unitPrice | number:'1.2-2' }}
+                          </p>
+                        </div>
+                      </div>
+                      <span class="text-sm font-black text-gray-900">S/ {{ detalle.subtotal | number:'1.2-2' }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <div class="mt-12 text-center">
+      <p class="text-[10px] font-bold text-gray-300 uppercase tracking-[0.4em]">EL GIGANTE — TRADICIÓN Y SABOR</p>
+    </div>
+  </div>
+</div>

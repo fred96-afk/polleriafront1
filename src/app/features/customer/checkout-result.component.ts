@@ -11,8 +11,10 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 export class CheckoutResultComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   status = signal<'success' | 'failure' | 'pending'>('success');
+  orderId = signal<string | null>(null);
 
   ngOnInit() {
+    this.orderId.set(this.route.snapshot.queryParamMap.get('orderId'));
     const path = window.location.pathname;
     if (path.includes('success')) this.status.set('success');
     else if (path.includes('failure')) this.status.set('failure');

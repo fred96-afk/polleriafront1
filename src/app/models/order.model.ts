@@ -1,12 +1,33 @@
+export interface OrderDetailResponse {
+  id: number;
+  productId: number;
+  productName: string;
+  sideId?: number | null;
+  sideName?: string | null;
+  quantity: number;
+  unitPrice: number;
+  subtotal: number;
+}
+
+export interface OrderResponse {
+  id: number;
+  orderDate: string;
+  clientId: number;
+  userId: number;
+  deliveryUserId?: number | null;
+  totalAmount: number;
+  details: OrderDetailResponse[];
+  status: string;
+  paymentStatus: string;
+  paymentUrl?: string | null;
+  pdfUrl?: string | null;
+  notas?: string | null;
+}
+
 export interface OrderDetailRequest {
   productId: number;
   sideId?: number | null;
   quantity: number;
-}
-
-export interface OrderDetailResponse extends OrderDetailRequest {
-  id: number;
-  productName?: string | null;
 }
 
 export interface OrderRequest {
@@ -14,16 +35,9 @@ export interface OrderRequest {
   userId: number;
   deliveryUserId?: number | null;
   isPos?: boolean;
-  details?: OrderDetailRequest[] | null;
-}
-
-export interface OrderResponse {
-  id: number;
-  clientId?: number | null;
-  userId: number;
-  deliveryUserId?: number | null;
-  details?: OrderDetailResponse[] | null;
-  orderDate?: string;
-  checkoutUrl?: string; // Mantener por si acaso
-  paymentUrl?: string;  // Esta es la que usa el backend realmente
+  details: OrderDetailRequest[];
+  customerName?: string | null;
+  documentNumber?: string | null;
+  documentType?: string | null;
+  customerEmail?: string | null;
 }

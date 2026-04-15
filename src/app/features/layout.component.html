@@ -56,6 +56,10 @@
           Administración
         </div>
 
+        <a routerLink="/admin/dashboard/summary" routerLinkActive="bg-orange-600 shadow-md" (click)="closeSidebar()" class="flex items-center p-3 hover:bg-orange-600 rounded-lg transition-colors group">
+          <span class="material-icons-outlined mr-3 text-orange-200 group-hover:text-white transition-colors">dashboard</span> 
+          <span class="font-medium">Dashboard</span>
+        </a>
         <a routerLink="/admin/dashboard/products" routerLinkActive="bg-orange-600 shadow-md" (click)="closeSidebar()" class="flex items-center p-3 hover:bg-orange-600 rounded-lg transition-colors group">
           <span class="material-icons-outlined mr-3 text-orange-200 group-hover:text-white transition-colors">inventory_2</span> 
           <span class="font-medium">Productos</span>

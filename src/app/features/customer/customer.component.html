@@ -14,6 +14,17 @@
         </div>
         
         <div class="flex items-center space-x-6">
+          <!-- Botón de Seguimiento Rápido -->
+          <div class="hidden md:flex items-center">
+             <button 
+                (click)="openTrackingDialog()" 
+                class="flex items-center gap-2 px-4 py-2 rounded-full border-2 border-orange-100 text-orange-600 font-black text-xs uppercase tracking-widest hover:bg-orange-50 transition-all shadow-sm"
+             >
+                <span class="material-icons-outlined text-base">local_shipping</span>
+                <span>Seguir Pedido</span>
+             </button>
+          </div>
+
           <!-- Mi Cuenta / User Dropdown -->
           <div class="relative">
             @if (authService.isAuthenticated()) {
@@ -38,6 +49,14 @@
                     <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Sesión Iniciada</p>
                     <p class="text-sm font-bold text-gray-900 truncate">{{ authService.currentUser()?.email || authService.displayName }}</p>
                   </div>
+
+                  <a 
+                    routerLink="/order-history"
+                    class="w-full px-6 py-3 text-left hover:bg-orange-50 text-gray-700 flex items-center gap-3 transition-colors group"
+                  >
+                    <span class="material-icons-outlined text-xl group-hover:text-orange-600">history</span>
+                    <span class="text-sm font-bold uppercase tracking-widest">Mis Pedidos</span>
+                  </a>
                   
                   <button 
                     (click)="onLogout()"

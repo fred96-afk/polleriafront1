@@ -32,9 +32,18 @@
         }
 
         <div class="space-y-3">
-          <a routerLink="/" class="block w-full bg-orange-600 text-white py-3 rounded-xl font-bold hover:bg-orange-700 transition-colors shadow-lg shadow-orange-100">
-            Volver al Inicio
-          </a>
+          @if (status() === 'success' && orderId()) {
+            <a [routerLink]="['/order-tracking', orderId()]" class="block w-full bg-orange-600 text-white py-3 rounded-xl font-bold hover:bg-orange-700 transition-colors shadow-lg shadow-orange-100">
+              Seguir mi Pedido
+            </a>
+            <a routerLink="/" class="block w-full bg-gray-100 text-gray-600 py-3 rounded-xl font-bold hover:bg-gray-200 transition-colors">
+              Volver al Inicio
+            </a>
+          } @else {
+            <a routerLink="/" class="block w-full bg-orange-600 text-white py-3 rounded-xl font-bold hover:bg-orange-700 transition-colors shadow-lg shadow-orange-100">
+              Volver al Inicio
+            </a>
+          }
         </div>
 
         <div class="mt-8 pt-6 border-t border-gray-100 text-[10px] text-gray-400 uppercase tracking-widest font-bold">

@@ -24,7 +24,8 @@ export class AdminClientsComponent {
 
   clientForm = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(3)]],
-    phone: ['', [Validators.required, Validators.pattern(/^[0-9]{8,11}$/)]],
+    documentNumber: ['', [Validators.required, Validators.pattern(/^[0-9]{8,11}$/)]],
+    phone: [''],
     address: ['', [Validators.required]]
   });
 
@@ -44,6 +45,7 @@ export class AdminClientsComponent {
       this.editingId.set(client.id);
       this.clientForm.patchValue({
         name: client.name,
+        documentNumber: client.documentNumber,
         phone: client.phone,
         address: client.address
       });
@@ -64,10 +66,13 @@ export class AdminClientsComponent {
     if (this.clientForm.invalid) return;
 
     this.loading.set(true);
+    const formVal = this.clientForm.value;
     const request: ClientRequest = {
-      name: this.clientForm.value.name,
-      phone: this.clientForm.value.phone,
-      address: this.clientForm.value.address
+      name: formVal.name,
+      documentNumber: formVal.documentNumber,
+      documentType: formVal.documentNumber?.length === 11 ? 'RUC' : 'DNI',
+      phone: formVal.phone,
+      address: formVal.address
     };
 
     const operation: Observable<unknown> = this.editingId() 

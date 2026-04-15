@@ -46,6 +46,19 @@ export class AuthService {
     }
   });
 
+  private parseNumericClaim(value: unknown): number | null {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+
+    if (typeof value === 'string' && value.trim() !== '') {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    return null;
+  }
+
   get roleName(): string | null {
     const user = this.currentUser();
     if (!user) return null;
@@ -82,6 +95,19 @@ export class AuthService {
     return 'Usuario';
   }
 
+  get email(): string | null {
+    const user = this.currentUser();
+    if (!user) return null;
+
+    const candidateEmail = user['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] ||
+      user.email ||
+      user.sub;
+
+    return typeof candidateEmail === 'string' && candidateEmail.trim() !== ''
+      ? candidateEmail.trim()
+      : null;
+  }
+
   get roleId(): number | null {
     const user = this.currentUser();
     if (!user) return null;
@@ -113,8 +139,22 @@ export class AuthService {
                   user['Id'] ||
                   user['sub'];
 
-    const numericId = parseInt(rawId, 10);
-    return isNaN(numericId) ? null : numericId;
+    return this.parseNumericClaim(rawId);
+  }
+
+  get clientId(): number | null {
+    const user = this.currentUser();
+    if (!user) {
+      console.warn('[AUTH] No hay usuario logueado al intentar obtener clientId');
+      return null;
+    }
+
+    const rawClientId = user['clientId'] ??
+                        user['ClientId'] ??
+                        user['clientid'] ??
+                        user['http://schemas.microsoft.com/ws/2008/06/identity/claims/userdata'];
+
+    return this.parseNumericClaim(rawClientId);
   }
 
   login(request: LoginRequest): Observable<AuthResponse> {

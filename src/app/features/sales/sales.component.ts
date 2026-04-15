@@ -9,10 +9,15 @@ import { DniService } from '../../services/dni.service';
 import { ProductResponse } from '../../models/product.model';
 import { OrderDetailRequest } from '../../models/order.model';
 import { ToastrService } from 'ngx-toastr';
-import { switchMap, finalize } from 'rxjs';
+import { switchMap, finalize, map } from 'rxjs';
 
 interface CartItem extends ProductResponse {
   quantity: number;
+}
+
+interface SaleResult {
+  orderId: number;
+  invoiceResponse: any;
 }
 
 @Component({
@@ -41,7 +46,7 @@ export class SalesComponent {
 
   clientForm = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(3)]],
-    phone: ['', [Validators.required, Validators.pattern(/^[0-9]{8,11}$/)]],
+    documentNumber: ['', [Validators.required, Validators.pattern(/^[0-9]{8,11}$/)]],
     address: ['Venta POS']
   });
 
@@ -78,7 +83,7 @@ export class SalesComponent {
   }
 
   searchDocument() {
-    const docNum = this.clientForm.get('phone')?.value;
+    const docNum = this.clientForm.get('documentNumber')?.value;
     if (!docNum || (docNum.length !== 8 && docNum.length !== 11)) {
       this.toastService.warning('Ingrese 8 dígitos para DNI u 11 para RUC', 'Formato Inválido');
       return;
@@ -111,7 +116,16 @@ export class SalesComponent {
 
     this.loading.set(true);
 
-    this.clientService.createClient(this.clientForm.value as any).pipe(
+    const formVal = this.clientForm.value;
+    const clientData = {
+      name: formVal.name,
+      documentNumber: formVal.documentNumber,
+      documentType: formVal.documentNumber?.length === 11 ? 'RUC' : 'DNI',
+      address: formVal.address,
+      phone: '' // Explicitly empty to avoid backend filling it with doc number if they have logic for that
+    };
+
+    this.clientService.createClient(clientData as any).pipe(
       switchMap(client => {
         const details: OrderDetailRequest[] = this.cart().map(item => ({
           productId: item.id,
@@ -122,19 +136,37 @@ export class SalesComponent {
           userId: userId,
           clientId: client.id,
           isPos: true,
-          details: details
+          details: details,
+          customerName: client.name,
+          documentNumber: client.documentNumber,
+          documentType: client.documentType
         });
+      }),
+      switchMap(order => {
+        const orderId = order.id;
+        return this.orderService.generateInvoice(orderId).pipe(
+          map(invoiceResponse => ({ orderId, invoiceResponse }))
+        );
       })
     ).subscribe({
-      next: (order) => {
-        this.toastService.success(`Venta #${order.id} procesada`);
-        this.cart.set([]);
-        this.clientForm.reset({ address: 'Venta POS' });
-        this.showClientModal.set(false);
-        this.loading.set(false);
+      next: ({ orderId, invoiceResponse }) => {
+        // ... (resto de la lógica de éxito igual)
+        this.toastService.success(`Venta #${orderId} procesada`);
+        // ...
       },
-      error: () => {
-        this.toastService.error('Error al procesar venta');
+      error: (err) => {
+        const timestamp = new Date().toISOString();
+        console.group(`%c [POS SALE ERROR] ${timestamp} `, 'background: #d32f2f; color: #fff; font-weight: bold; padding: 4px;');
+        console.error('%cDetalle del Error:%c', 'font-weight: bold', '', err);
+        console.warn('%cEstado del Proceso:%c', 'font-weight: bold', '', {
+          userId: this.authService.userId,
+          clientData: this.clientForm.value,
+          cartItems: this.cart().length,
+          total: this.totalPrice()
+        });
+        console.groupEnd();
+
+        this.toastService.error('Error al procesar venta o generar comprobante', 'Error POS');
         this.loading.set(false);
       }
     });

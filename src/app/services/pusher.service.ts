@@ -15,10 +15,23 @@ export class PusherService {
   orderNotifications$ = this.orderNotificationSource.asObservable();
 
   constructor() {
+    // Activar logging de Pusher para depuración
+    Pusher.logToConsole = true;
+
     // Configuración de Pusher
     this.pusher = new Pusher(enviroment.pusher.key, {
       cluster: enviroment.pusher.cluster,
-      forceTLS: true
+      forceTLS: true,
+      enabledTransports: ['ws', 'wss']
+    });
+
+    // Monitorear el estado de la conexión
+    this.pusher.connection.bind('state_change', (states: any) => {
+      console.log('Pusher Connection State changed:', states);
+    });
+
+    this.pusher.connection.bind('error', (err: any) => {
+      console.error('Pusher Connection Error:', err);
     });
 
     // Suscribirse al canal de administración

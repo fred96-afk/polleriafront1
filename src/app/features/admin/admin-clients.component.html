@@ -12,7 +12,7 @@
         <thead class="bg-gray-50 text-gray-500 uppercase text-[10px] tracking-wider font-bold">
           <tr>
             <th scope="col" class="px-4 sm:px-6 py-4 text-left">Cliente</th>
-            <th scope="col" class="px-4 sm:px-6 py-4 text-left">Teléfono</th>
+            <th scope="col" class="px-4 sm:px-6 py-4 text-left">Documento</th>
             <th scope="col" class="hidden md:table-cell px-4 sm:px-6 py-4 text-left">Dirección</th>
             <th scope="col" class="px-4 sm:px-6 py-4 text-center">Acciones</th>
           </tr>
@@ -37,7 +37,13 @@
                   </div>
                 </td>
                 <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-left">
-                  <span class="text-gray-600 font-medium text-sm sm:text-base">{{ c.phone }}</span>
+                  <div class="flex flex-col">
+                    <span class="text-gray-800 font-bold text-sm">{{ c.documentNumber }}</span>
+                    <span class="text-[9px] font-black text-orange-600 uppercase tracking-tighter">{{ c.documentType }}</span>
+                    @if (c.phone) {
+                      <span class="text-[10px] text-gray-400 font-medium italic mt-0.5">Telf: {{ c.phone }}</span>
+                    }
+                  </div>
                 </td>
                 <td class="hidden md:table-cell px-4 sm:px-6 py-4 text-left">
                   <p class="text-gray-500 text-sm line-clamp-1 max-w-xs">{{ c.address }}</p>
@@ -80,9 +86,16 @@
             <input type="text" formControlName="name" placeholder="Ej: Juan Pérez" class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-orange-500 outline-none transition-all text-sm sm:text-base font-medium">
           </div>
 
-          <div class="space-y-1.5">
-            <label class="block text-xs font-black text-gray-500 uppercase tracking-widest ml-1">Teléfono / Celular</label>
-            <input type="text" formControlName="phone" maxlength="11" placeholder="Ej: 987654321" class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-orange-500 outline-none transition-all text-sm sm:text-base font-medium">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="space-y-1.5">
+              <label class="block text-xs font-black text-gray-500 uppercase tracking-widest ml-1">DNI / RUC</label>
+              <input type="text" formControlName="documentNumber" maxlength="11" placeholder="Ej: 00000000" class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-orange-500 outline-none transition-all text-sm sm:text-base font-medium">
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="block text-xs font-black text-gray-500 uppercase tracking-widest ml-1">Teléfono (Opcional)</label>
+              <input type="text" formControlName="phone" maxlength="11" placeholder="Ej: 987654321" class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-orange-500 outline-none transition-all text-sm sm:text-base font-medium">
+            </div>
           </div>
 
           <div class="space-y-1.5">

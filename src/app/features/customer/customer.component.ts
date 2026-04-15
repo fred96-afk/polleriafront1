@@ -5,7 +5,6 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ProductService } from '../../services/product.service';
 import { OrderService } from '../../services/order.service';
 import { AuthService } from '../../services/auth.service';
-import { ClientService } from '../../services/client.service';
 import { BannerService } from '../../services/banner.service';
 import { CatalogoService } from '../../services/catalogo.service';
 import { DniService } from '../../services/dni.service';
@@ -15,7 +14,7 @@ import { OrderDetailRequest } from '../../models/order.model';
 import { TipoDocumento } from '../../models/catalogo.model';
 import { RouterLink, Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
-import { finalize, switchMap } from 'rxjs';
+import { finalize } from 'rxjs';
 
 interface CartItem extends ProductResponse {
   quantity: number;
@@ -53,7 +52,6 @@ interface CartItem extends ProductResponse {
 export class CustomerComponent implements OnInit, OnDestroy {
   private readonly productService = inject(ProductService);
   private readonly orderService = inject(OrderService);
-  private readonly clientService = inject(ClientService);
   public readonly authService = inject(AuthService);
   private readonly bannerService = inject(BannerService);
   private readonly catalogoService = inject(CatalogoService);
@@ -311,6 +309,15 @@ export class CustomerComponent implements OnInit, OnDestroy {
     this.showCheckoutModal.set(true);
   }
 
+  openTrackingDialog() {
+    const orderId = prompt('Por favor, ingresa el número de tu pedido (ID):');
+    if (orderId && !isNaN(Number(orderId))) {
+      this.router.navigate(['/order-tracking', orderId]);
+    } else if (orderId) {
+      this.toastService.warning('Por favor, ingresa un número de pedido válido.', 'Aviso');
+    }
+  }
+
   onLogout() {
     this.authService.logout();
     this.showUserDropdown.set(false);
@@ -325,7 +332,7 @@ export class CustomerComponent implements OnInit, OnDestroy {
 
     const userId = this.authService.userId;
     if (!userId) {
-      this.toastService.error('Error de sesión', 'Error');
+      this.toastService.error('Información de usuario no encontrada', 'Error');
       return;
     }
 
@@ -334,41 +341,59 @@ export class CustomerComponent implements OnInit, OnDestroy {
     const tipoDocId = this.checkoutForm.value.idTipoDocumento;
     const tipoDocNombre = this.tiposDocumento().find(t => t.id === tipoDocId)?.nombre || 'DNI';
 
-    this.clientService.createClient({
-      documentType: tipoDocNombre,
-      documentNumber: this.checkoutForm.value.numeroDocumento,
-      name: this.checkoutForm.value.name,
-      phone: this.checkoutForm.value.phone,
-      address: this.checkoutForm.value.address
-    }).pipe(
-      switchMap(client => {
-        const details: OrderDetailRequest[] = this.cart().map(item => ({
-          productId: item.id,
-          quantity: item.quantity
-        }));
+    const details: OrderDetailRequest[] = this.cart().map(item => ({
+      productId: item.id,
+      quantity: item.quantity
+    }));
 
-        return this.orderService.createOrder({
-          userId: userId,
-          clientId: client.id,
-          isPos: false,
-          details: details
-        });
-      })
+    this.orderService.createOrder({
+      userId,
+      clientId: null,
+      isPos: false,
+      details,
+      customerName: this.checkoutForm.value.name,
+      documentNumber: this.checkoutForm.value.numeroDocumento,
+      documentType: tipoDocNombre,
+      customerEmail: this.authService.email
+    }).pipe(
+      finalize(() => this.loading.set(false))
     ).subscribe({
       next: (order) => {
         if (order.paymentUrl) {
-          window.location.href = order.paymentUrl;
-        } else {
-          this.toastService.success('¡Pedido enviado con éxito!', '¡Éxito!');
-          this.cart.set([]);
-          this.showCheckoutModal.set(false);
-          this.loading.set(false);
+          // Abrir Mercado Pago en una nueva pestaña
+          const win = window.open(order.paymentUrl, '_blank', 'noopener,noreferrer');
+          if (win) {
+            win.focus();
+            this.toastService.success('Se ha abierto una nueva pestaña para el pago.', '¡Pedido Creado!');
+          } else {
+            // Si el navegador bloquea el popup, fallback en la misma pestaña
+            window.location.href = order.paymentUrl;
+            return;
+          }
         }
+        
+        this.toastService.success(`Pedido #${order.id} enviado con éxito!`, '¡Éxito!');
+        this.cart.set([]);
+        this.showCheckoutModal.set(false);
+        
+        // Redirigir a la página de seguimiento en la pestaña actual
+        this.router.navigate(['/order-tracking', order.id]);
       },
       error: (err) => {
-        console.error('Error al procesar pedido:', err);
+        const timestamp = new Date().toISOString();
+        console.group(`%c [DELIVERY ORDER ERROR] ${timestamp} `, 'background: #d32f2f; color: #fff; font-weight: bold; padding: 4px;');
+        console.error('%cDetalle del Error:%c', 'font-weight: bold', '', err);
+        console.warn('%cEstado del Proceso:%c', 'font-weight: bold', '', {
+          userId,
+          clientId: null,
+          formData: this.checkoutForm.value,
+          cartCount: this.cartCount(),
+          total: this.totalPrice(),
+          customerEmail: this.authService.email
+        });
+        console.groupEnd();
+
         this.toastService.error('No se pudo procesar el pedido', 'Error');
-        this.loading.set(false);
       }
     });
   }
