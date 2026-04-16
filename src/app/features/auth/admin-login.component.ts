@@ -28,6 +28,7 @@ export class AdminLoginComponent {
 
   loading = signal(false);
   showPassword = signal(false);
+  submitted = signal(false);
 
   loginForm = new FormGroup({
     email: new FormControl('', [Validators.required, Validators.email]),
@@ -35,37 +36,42 @@ export class AdminLoginComponent {
   });
 
   onSubmit() {
-    if (this.loginForm.valid) {
-      this.loading.set(true);
-      const { email, password } = this.loginForm.value;
-      
-      this.authService.adminLogin({ email, password }).subscribe({
-        next: () => {
-          if (this.authService.canAccessAdminDashboard()) {
-            this.toastService.success('ENTRANDO AL PANEL DE CONTROL', 'ACCESO CONCEDIDO');
-            setTimeout(() => {
-              this.router.navigate(['/admin/dashboard/products']);
-            }, 1000);
-            return;
-          }
+    this.submitted.set(true);
 
-          if (this.authService.canAccessPos()) {
-            this.toastService.success('ENTRANDO AL POS', 'ACCESO CONCEDIDO');
-            setTimeout(() => {
-              this.router.navigate(['/admin/sales']);
-            }, 1000);
-            return;
-          }
-
-          this.authService.logout();
-          this.toastService.error('TU ROL NO TIENE ACCESO A ESTE MÓDULO', 'ACCESO DENEGADO');
-          this.loading.set(false);
-        },
-        error: () => {
-          this.toastService.error('CREDENCIALES DE ADMIN INVÁLIDAS', 'ACCESO DENEGADO');
-          this.loading.set(false);
-        }
-      });
+    if (this.loginForm.invalid) {
+      this.loginForm.markAllAsTouched();
+      return;
     }
+
+    this.loading.set(true);
+    const { email, password } = this.loginForm.value;
+    
+    this.authService.adminLogin({ email, password }).subscribe({
+      next: () => {
+        if (this.authService.canAccessAdminDashboard()) {
+          this.toastService.success('ENTRANDO AL PANEL DE CONTROL', 'ACCESO CONCEDIDO');
+          setTimeout(() => {
+            this.router.navigate(['/admin/dashboard/products']);
+          }, 1000);
+          return;
+        }
+
+        if (this.authService.canAccessPos()) {
+          this.toastService.success('ENTRANDO AL POS', 'ACCESO CONCEDIDO');
+          setTimeout(() => {
+            this.router.navigate(['/admin/sales']);
+          }, 1000);
+          return;
+        }
+
+        this.authService.logout();
+        this.toastService.error('TU ROL NO TIENE ACCESO A ESTE MÓDULO', 'ACCESO DENEGADO');
+        this.loading.set(false);
+      },
+      error: () => {
+        this.toastService.error('CREDENCIALES DE ADMIN INVÁLIDAS', 'ACCESO DENEGADO');
+        this.loading.set(false);
+      }
+    });
   }
 }

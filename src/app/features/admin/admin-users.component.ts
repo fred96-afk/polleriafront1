@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { finalize } from 'rxjs';
+import { finalize, Observable } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 import { AdminUserService } from '../../services/admin-user.service';
 import {
@@ -26,6 +26,18 @@ export class AdminUsersComponent {
   readonly saving = signal(false);
   readonly showModal = signal(false);
   readonly listError = signal('');
+  readonly editingId = signal<number | null>(null);
+  private readonly passwordMatchValidator = (group: AbstractControl) => {
+    const password = group.get('password')?.value;
+    const confirmPassword = group.get('confirmPassword')?.value;
+    const editingId = this.editingId();
+
+    if (editingId && !password && !confirmPassword) {
+      return null;
+    }
+
+    return password === confirmPassword ? null : { mismatch: true };
+  };
 
   readonly userForm = this.fb.nonNullable.group(
     {
@@ -59,19 +71,40 @@ export class AdminUsersComponent {
     });
   }
 
-  openModal() {
-    this.userForm.reset({
-      name: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
-      roleId: this.administrativeRoles[0].id
-    });
+  openModal(user?: AdministrativeUser) {
+    if (user) {
+      this.editingId.set(user.id);
+      this.userForm.reset({
+        name: user.name,
+        email: user.email,
+        password: '',
+        confirmPassword: '',
+        roleId: user.roleId
+      });
+      this.userForm.controls.password.setValidators([Validators.minLength(6)]);
+      this.userForm.controls.confirmPassword.clearValidators();
+    } else {
+      this.editingId.set(null);
+      this.userForm.reset({
+        name: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+        roleId: this.administrativeRoles[0].id
+      });
+      this.userForm.controls.password.setValidators([Validators.required, Validators.minLength(6)]);
+      this.userForm.controls.confirmPassword.setValidators([Validators.required]);
+    }
+
+    this.userForm.controls.password.updateValueAndValidity();
+    this.userForm.controls.confirmPassword.updateValueAndValidity();
+    this.userForm.updateValueAndValidity();
     this.showModal.set(true);
   }
 
   closeModal() {
     this.showModal.set(false);
+    this.editingId.set(null);
   }
 
   saveUser() {
@@ -83,23 +116,35 @@ export class AdminUsersComponent {
     const { name, email, password, roleId } = this.userForm.getRawValue();
     this.saving.set(true);
 
-    this.adminUserService.createAdministrativeUser({ name, email, password, roleId }).pipe(
+    const request = {
+      name,
+      email,
+      password: password || undefined,
+      roleId
+    };
+
+    const operation: Observable<void> = this.editingId()
+      ? this.adminUserService.updateAdministrativeUser(this.editingId()!, request)
+      : this.adminUserService.createAdministrativeUser(request);
+
+    operation.pipe(
       finalize(() => this.saving.set(false))
     ).subscribe({
       next: () => {
-        this.toastService.success('Usuario administrativo creado correctamente', 'Éxito');
+        this.toastService.success(
+          this.editingId() ? 'Usuario administrativo actualizado correctamente' : 'Usuario administrativo creado correctamente',
+          'Éxito'
+        );
         this.closeModal();
         this.loadUsers();
       },
       error: () => {
-        this.toastService.error('No se pudo crear el usuario administrativo', 'Error');
+        this.toastService.error(
+          this.editingId() ? 'No se pudo actualizar el usuario administrativo' : 'No se pudo crear el usuario administrativo',
+          'Error'
+        );
       }
     });
   }
 
-  private passwordMatchValidator(group: AbstractControl) {
-    const password = group.get('password')?.value;
-    const confirmPassword = group.get('confirmPassword')?.value;
-    return password === confirmPassword ? null : { mismatch: true };
-  }
 }

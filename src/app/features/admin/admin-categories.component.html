@@ -135,7 +135,14 @@
               formControlName="name"
               placeholder="Ej: Pollos, Bebidas, etc."
               class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all text-sm sm:text-base font-medium"
+              [class.border-red-500]="(categoryForm.get('name')?.touched || submitted()) && categoryForm.get('name')?.invalid"
             >
+            @if ((categoryForm.get('name')?.touched || submitted()) && categoryForm.get('name')?.invalid) {
+              <p class="text-[10px] text-red-500 mt-2 font-bold uppercase tracking-wider ml-1">
+                @if (categoryForm.get('name')?.hasError('required')) { El nombre es obligatorio }
+                @if (categoryForm.get('name')?.hasError('minlength')) { Minimo 3 caracteres }
+              </p>
+            }
           </div>
 
           <div class="space-y-1.5">
@@ -145,7 +152,13 @@
               placeholder="¿Qué tipo de productos incluye?"
               rows="3"
               class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all resize-none text-sm font-medium"
+              [class.border-red-500]="(categoryForm.get('description')?.touched || submitted()) && categoryForm.get('description')?.invalid"
             ></textarea>
+            @if ((categoryForm.get('description')?.touched || submitted()) && categoryForm.get('description')?.invalid) {
+              <p class="text-[10px] text-red-500 mt-2 font-bold uppercase tracking-wider ml-1">
+                La descripcion es obligatoria
+              </p>
+            }
           </div>
 
           <div class="space-y-1.5">
@@ -176,7 +189,7 @@
             </button>
             <button 
               type="submit" 
-              [disabled]="categoryForm.invalid || loading()"
+              [disabled]="loading()"
               class="order-1 sm:order-2 flex-[1.5] px-4 py-3 rounded-xl font-black bg-orange-600 text-white hover:bg-orange-700 disabled:opacity-50 shadow-xl shadow-orange-200 active:scale-95 transition-all text-sm sm:text-base flex items-center justify-center gap-2"
             >
               @if (loading()) {

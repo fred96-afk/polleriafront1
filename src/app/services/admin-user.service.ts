@@ -32,6 +32,14 @@ export class AdminUserService {
     return this.http.post<void>(this.usersApiUrl, request);
   }
 
+  updateAdministrativeUser(id: number, request: UserRequest): Observable<void> {
+    if (!ADMINISTRATIVE_ROLE_IDS.has(request.roleId)) {
+      throw new Error('Solo se permiten roles administrativos');
+    }
+
+    return this.http.put<void>(`${this.usersApiUrl}/${id}`, request);
+  }
+
   private extractCollection(response: unknown): unknown[] {
     if (Array.isArray(response)) {
       return response;

@@ -52,25 +52,34 @@ export class AdminDashboardComponent {
   salesChartOptions = computed<Partial<ChartOptions> | null>(() => {
     const data = this.stats();
     if (!data || !data.salesByDay || data.salesByDay.length === 0) return null;
+    const hasSinglePoint = data.salesByDay.length === 1;
 
     return {
       series: [
         {
           name: "Ventas (S/)",
-          data: data.salesByDay.map(s => s.amount ?? s.total ?? 0)
+          data: data.salesByDay.map(s => s.amount ?? 0)
         }
       ],
       chart: {
         height: 350,
-        type: "area",
+        type: hasSinglePoint ? "bar" : "area",
         toolbar: { show: false },
         fontFamily: 'inherit'
       },
       colors: ["#ea580c"],
-      dataLabels: { enabled: false },
+      dataLabels: { enabled: hasSinglePoint },
       stroke: { curve: "smooth", width: 3 },
+      plotOptions: hasSinglePoint
+        ? {
+            bar: {
+              borderRadius: 8,
+              columnWidth: '35%'
+            }
+          }
+        : {},
       xaxis: {
-        categories: data.salesByDay.map(s => s.date ?? s.day ?? ""),
+        categories: data.salesByDay.map(s => s.date ?? ""),
         labels: { style: { colors: "#94a3b8", fontWeight: 600 } }
       },
       yaxis: {

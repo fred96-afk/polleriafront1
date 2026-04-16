@@ -25,6 +25,7 @@ export class AdminProductsComponent {
   showModal = signal(false);
   loading = signal(false);
   editingId = signal<number | null>(null);
+  submitted = signal(false);
   selectedFile: File | null = null;
 
   // Pagination and Search
@@ -89,6 +90,7 @@ export class AdminProductsComponent {
   }
 
   openModal(product?: ProductResponse) {
+    this.submitted.set(false);
     if (product) {
       this.editingId.set(product.id);
       this.productForm.patchValue({
@@ -108,12 +110,17 @@ export class AdminProductsComponent {
   closeModal() {
     this.showModal.set(false);
     this.editingId.set(null);
+    this.submitted.set(false);
     this.productForm.reset();
     this.selectedFile = null;
   }
 
   saveProduct() {
-    if (this.productForm.invalid) return;
+    this.submitted.set(true);
+    if (this.productForm.invalid) {
+      this.productForm.markAllAsTouched();
+      return;
+    }
 
     this.loading.set(true);
     const request: ProductRequest = {

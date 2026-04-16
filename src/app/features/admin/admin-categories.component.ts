@@ -21,6 +21,7 @@ export class AdminCategoriesComponent {
   showModal = signal(false);
   loading = signal(false);
   editingId = signal<number | null>(null);
+  submitted = signal(false);
   selectedFile: File | null = null;
 
   // Pagination
@@ -64,6 +65,7 @@ export class AdminCategoriesComponent {
   }
 
   openModal(category?: CategoryResponse) {
+    this.submitted.set(false);
     if (category) {
       this.editingId.set(category.id);
       this.categoryForm.patchValue({
@@ -81,12 +83,17 @@ export class AdminCategoriesComponent {
   closeModal() {
     this.showModal.set(false);
     this.editingId.set(null);
+    this.submitted.set(false);
     this.categoryForm.reset();
     this.selectedFile = null;
   }
 
   saveCategory() {
-    if (this.categoryForm.invalid) return;
+    this.submitted.set(true);
+    if (this.categoryForm.invalid) {
+      this.categoryForm.markAllAsTouched();
+      return;
+    }
 
     this.loading.set(true);
     const request: CategoryRequest = {

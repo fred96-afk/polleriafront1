@@ -28,12 +28,13 @@
                   required
                   class="appearance-none block w-full pl-12 pr-4 py-4 border-2 border-slate-100 placeholder-slate-300 text-slate-900 rounded-2xl focus:outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/5 transition-all text-sm font-bold"
                   placeholder="admin@elsabroso.com"
-                  [class.border-red-500]="loginForm.get('email')?.touched && loginForm.get('email')?.invalid"
+                  [class.border-red-500]="(loginForm.get('email')?.touched || submitted()) && loginForm.get('email')?.invalid"
                 />
               </div>
-              @if (loginForm.get('email')?.touched && loginForm.get('email')?.invalid) {
+              @if ((loginForm.get('email')?.touched || submitted()) && loginForm.get('email')?.invalid) {
                 <p class="text-[10px] text-red-500 mt-2 font-bold uppercase tracking-wider ml-1 animate-shake">
-                  Email de administrador no válido o incompleto
+                  @if (loginForm.get('email')?.hasError('required')) { El email es obligatorio }
+                  @if (loginForm.get('email')?.hasError('email')) { Email de administrador no valido }
                 </p>
               }
             </div>
@@ -49,7 +50,7 @@
                   required
                   class="appearance-none block w-full pl-12 pr-12 py-4 border-2 border-slate-100 placeholder-slate-300 text-slate-900 rounded-2xl focus:outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/5 transition-all text-sm font-bold"
                   placeholder="••••••••"
-                  [class.border-red-500]="loginForm.get('password')?.touched && loginForm.get('password')?.invalid"
+                  [class.border-red-500]="(loginForm.get('password')?.touched || submitted()) && loginForm.get('password')?.invalid"
                 />
                 <button 
                   type="button"
@@ -59,7 +60,7 @@
                   <span class="material-icons-outlined text-xl">{{ showPassword() ? 'visibility_off' : 'visibility' }}</span>
                 </button>
               </div>
-              @if (loginForm.get('password')?.touched && loginForm.get('password')?.invalid) {
+              @if ((loginForm.get('password')?.touched || submitted()) && loginForm.get('password')?.invalid) {
                 <p class="text-[10px] text-red-500 mt-2 font-bold uppercase tracking-wider ml-1 animate-shake">
                   Clave de seguridad obligatoria
                 </p>
@@ -70,7 +71,7 @@
           <div class="pt-2">
             <button
               type="submit"
-              [disabled]="loginForm.invalid || loading()"
+              [disabled]="loading()"
               class="group relative w-full flex justify-center py-5 px-4 border-none text-xs font-black rounded-2xl text-white bg-slate-900 hover:bg-black focus:outline-none focus:ring-4 focus:ring-slate-500/20 disabled:opacity-50 transition-all shadow-xl shadow-black/10 uppercase tracking-[0.3em]"
             >
               @if (loading()) {

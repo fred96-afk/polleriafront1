@@ -67,6 +67,7 @@
               <th scope="col" class="px-4 sm:px-6 py-4">Usuario</th>
               <th scope="col" class="hidden sm:table-cell px-4 sm:px-6 py-4">Correo</th>
               <th scope="col" class="px-4 sm:px-6 py-4 text-right sm:text-left">Rol</th>
+              <th scope="col" class="px-4 sm:px-6 py-4 text-center">Acciones</th>
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-100">
@@ -76,11 +77,12 @@
                   <td class="px-4 sm:px-6 py-4"><div class="h-4 bg-gray-200 rounded w-3/4"></div></td>
                   <td class="hidden sm:table-cell px-4 sm:px-6 py-4"><div class="h-4 bg-gray-200 rounded w-full"></div></td>
                   <td class="px-4 sm:px-6 py-4 flex justify-end sm:justify-start"><div class="h-6 bg-gray-200 rounded-full w-24"></div></td>
+                  <td class="px-4 sm:px-6 py-4 text-center"><div class="w-20 h-8 bg-gray-200 rounded-lg mx-auto"></div></td>
                 </tr>
               }
             } @else if (users().length === 0) {
               <tr>
-                <td colspan="3" class="px-4 sm:px-6 py-10 text-center text-gray-500">
+                <td colspan="4" class="px-4 sm:px-6 py-10 text-center text-gray-500">
                   <div class="flex flex-col items-center justify-center gap-2">
                     <span class="material-icons-outlined text-4xl text-gray-300">group_off</span>
                     <span class="text-sm font-medium">No hay usuarios administrativos para mostrar.</span>
@@ -104,6 +106,16 @@
                       {{ user.roleName }}
                     </span>
                   </td>
+                  <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-center">
+                    <button
+                      (click)="openModal(user)"
+                      class="inline-flex h-8 sm:h-9 items-center justify-center gap-1.5 rounded-lg bg-blue-50 px-2.5 sm:px-3 text-xs sm:text-sm font-bold text-blue-700 hover:bg-blue-100 transition-colors"
+                      title="Editar personal"
+                    >
+                      <span class="material-icons-outlined text-base sm:text-lg">edit</span>
+                      <span>Editar</span>
+                    </button>
+                  </td>
                 </tr>
               }
             }
@@ -119,7 +131,9 @@
       <div class="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-xl my-8 overflow-hidden animate-in fade-in zoom-in slide-in-from-bottom-4 duration-300">
         <div class="p-5 sm:p-6 border-b flex justify-between items-center bg-gray-50 sticky top-0 z-10">
           <div>
-            <h3 class="text-lg sm:text-xl font-black text-gray-800 tracking-tight">Crear Usuario Administrativo</h3>
+            <h3 class="text-lg sm:text-xl font-black text-gray-800 tracking-tight">
+              {{ editingId() ? 'Editar Personal Administrativo' : 'Crear Usuario Administrativo' }}
+            </h3>
             <p class="text-[10px] sm:text-xs text-gray-500 mt-0.5 font-bold uppercase tracking-widest">Panel Interno</p>
           </div>
           <button (click)="closeModal()" class="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-200 hover:text-gray-600 transition-colors">
@@ -134,8 +148,15 @@
               type="text"
               formControlName="name"
               class="w-full px-4 py-3 sm:py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all text-sm sm:text-base font-medium"
+              [class.border-red-500]="userForm.get('name')?.touched && userForm.get('name')?.invalid"
               placeholder="Ej: Juan Pérez"
             >
+            @if (userForm.get('name')?.touched && userForm.get('name')?.invalid) {
+              <p class="text-[10px] text-red-500 mt-2 font-bold uppercase tracking-wider ml-1">
+                @if (userForm.get('name')?.hasError('required')) { El nombre es obligatorio }
+                @if (userForm.get('name')?.hasError('minlength')) { Mínimo 3 caracteres }
+              </p>
+            }
           </div>
 
           <div class="md:col-span-2 space-y-1.5">
@@ -144,8 +165,15 @@
               type="email"
               formControlName="email"
               class="w-full px-4 py-3 sm:py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all text-sm sm:text-base font-medium"
+              [class.border-red-500]="userForm.get('email')?.touched && userForm.get('email')?.invalid"
               placeholder="personal@polleria.com"
             >
+            @if (userForm.get('email')?.touched && userForm.get('email')?.invalid) {
+              <p class="text-[10px] text-red-500 mt-2 font-bold uppercase tracking-wider ml-1">
+                @if (userForm.get('email')?.hasError('required')) { El correo es obligatorio }
+                @if (userForm.get('email')?.hasError('email')) { Ingresa un correo valido }
+              </p>
+            }
           </div>
 
           <div class="md:col-span-2 space-y-1.5">
@@ -153,31 +181,54 @@
             <select
               formControlName="roleId"
               class="w-full px-4 py-3 sm:py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all text-sm sm:text-base font-medium appearance-none"
+              [class.border-red-500]="userForm.get('roleId')?.touched && userForm.get('roleId')?.invalid"
             >
               @for (role of administrativeRoles; track role.id) {
                 <option [ngValue]="role.id">{{ role.name }}</option>
               }
             </select>
+            @if (userForm.get('roleId')?.touched && userForm.get('roleId')?.hasError('required')) {
+              <p class="text-[10px] text-red-500 mt-2 font-bold uppercase tracking-wider ml-1">
+                Debes seleccionar un rol
+              </p>
+            }
           </div>
 
           <div class="space-y-1.5">
-            <label class="block text-[10px] sm:text-xs font-black text-gray-500 uppercase tracking-widest ml-1">Contraseña</label>
+            <label class="block text-[10px] sm:text-xs font-black text-gray-500 uppercase tracking-widest ml-1">
+              Contraseña {{ editingId() ? '(Opcional)' : '' }}
+            </label>
             <input
               type="password"
               formControlName="password"
               class="w-full px-4 py-3 sm:py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all text-sm sm:text-base font-medium"
+              [class.border-red-500]="userForm.get('password')?.touched && userForm.get('password')?.invalid"
               placeholder="Mín. 6 caracteres"
             >
+            @if (userForm.get('password')?.touched && userForm.get('password')?.invalid) {
+              <p class="text-[10px] text-red-500 mt-2 font-bold uppercase tracking-wider ml-1">
+                @if (userForm.get('password')?.hasError('required')) { La contraseña es obligatoria }
+                @if (userForm.get('password')?.hasError('minlength')) { Mínimo 6 caracteres }
+              </p>
+            }
           </div>
 
           <div class="space-y-1.5">
-            <label class="block text-[10px] sm:text-xs font-black text-gray-500 uppercase tracking-widest ml-1">Confirmar Contraseña</label>
+            <label class="block text-[10px] sm:text-xs font-black text-gray-500 uppercase tracking-widest ml-1">
+              Confirmar Contraseña {{ editingId() ? '(Solo si cambias la clave)' : '' }}
+            </label>
             <input
               type="password"
               formControlName="confirmPassword"
               class="w-full px-4 py-3 sm:py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all text-sm sm:text-base font-medium"
+              [class.border-red-500]="userForm.get('confirmPassword')?.touched && (userForm.get('confirmPassword')?.invalid || userForm.hasError('mismatch'))"
               placeholder="Repite la contraseña"
             >
+            @if (userForm.get('confirmPassword')?.touched && userForm.get('confirmPassword')?.hasError('required')) {
+              <p class="text-[10px] text-red-500 mt-2 font-bold uppercase tracking-wider ml-1">
+                Debes confirmar la contraseña
+              </p>
+            }
           </div>
 
           @if (userForm.hasError('mismatch') && userForm.get('confirmPassword')?.touched) {
@@ -202,10 +253,10 @@
             >
               @if (saving()) {
                 <div class="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                <span>Creando...</span>
+                <span>{{ editingId() ? 'Actualizando...' : 'Creando...' }}</span>
               } @else {
-                <span class="material-icons-outlined text-base sm:text-lg">person_add</span>
-                <span>Crear Usuario</span>
+                <span class="material-icons-outlined text-base sm:text-lg">{{ editingId() ? 'save' : 'person_add' }}</span>
+                <span>{{ editingId() ? 'Actualizar Usuario' : 'Crear Usuario' }}</span>
               }
             </button>
           </div>
