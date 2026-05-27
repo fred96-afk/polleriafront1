@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EmpleadoService } from '../../services/empleado.service';
@@ -10,11 +10,12 @@ import { Observable, finalize } from 'rxjs';
 
 @Component({
   selector: 'app-admin-empleados',
+  standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './admin-empleados.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AdminEmpleadosComponent {
+export class AdminEmpleadosComponent implements OnInit {
   private readonly empleadoService = inject(EmpleadoService);
   private readonly catalogoService = inject(CatalogoService);
   private readonly fb = inject(FormBuilder);
@@ -26,6 +27,12 @@ export class AdminEmpleadosComponent {
   loading = signal(false);
   showModal = signal(false);
   editingId = signal<number | null>(null);
+
+  // Pagination
+  currentPage = signal(1);
+  pageSize = signal(10);
+  totalPages = signal(1);
+  totalCount = signal(0);
 
   empleadosWithDetails = computed(() => {
     const emps = this.empleados();
@@ -45,20 +52,45 @@ export class AdminEmpleadosComponent {
     numeroDocumento: ['', [Validators.required, Validators.minLength(8)]],
     nombre: ['', [Validators.required, Validators.minLength(2)]],
     nombreUsuario: ['', [Validators.required, Validators.minLength(4)]],
-    contrasena: ['', [Validators.minLength(6)]], // Optional for update
+    contrasena: ['', [Validators.minLength(6)]],
     estadoLogico: [true]
   });
 
-  constructor() {
+  ngOnInit() {
     this.loadEmpleados();
     this.loadCatalogos();
   }
 
   loadEmpleados() {
     this.loading.set(true);
-    this.empleadoService.getEmpleados().pipe(
+    this.empleadoService.getPagedEmpleados(this.currentPage(), this.pageSize()).pipe(
       finalize(() => this.loading.set(false))
-    ).subscribe(data => this.empleados.set(data));
+    ).subscribe({
+      next: (data) => {
+        this.empleados.set(data.items.sort((a, b) => b.id - a.id));
+        this.totalPages.set(data.totalPages);
+        this.totalCount.set(data.totalCount);
+      },
+      error: () => {
+        // Fallback
+        this.empleadoService.getEmpleados().pipe(
+          finalize(() => this.loading.set(false))
+        ).subscribe(data => {
+          const sorted = data.sort((a, b) => b.id - a.id);
+          this.totalCount.set(sorted.length);
+          this.totalPages.set(Math.ceil(sorted.length / this.pageSize()));
+          const start = (this.currentPage() - 1) * this.pageSize();
+          this.empleados.set(sorted.slice(start, start + this.pageSize()));
+        });
+      }
+    });
+  }
+
+  changePage(page: number) {
+    if (page >= 1 && page <= this.totalPages()) {
+      this.currentPage.set(page);
+      this.loadEmpleados();
+    }
   }
 
   loadCatalogos() {
@@ -78,7 +110,6 @@ export class AdminEmpleadosComponent {
         contrasena: '',
         estadoLogico: emp.estadoLogico
       });
-      // Removing required validator from password when editing
       this.empleadoForm.get('contrasena')?.clearValidators();
     } else {
       this.editingId.set(null);

@@ -1,9 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { finalize, Observable } from 'rxjs';
+import { finalize, Observable, Subscription } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 import { AdminUserService } from '../../services/admin-user.service';
+import { PusherService } from '../../services/pusher.service';
 import {
   ADMINISTRATIVE_ROLE_OPTIONS,
   AdministrativeUser
@@ -11,14 +12,16 @@ import {
 
 @Component({
   selector: 'app-admin-users',
+  standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './admin-users.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AdminUsersComponent {
+export class AdminUsersComponent implements OnInit, OnDestroy {
   private readonly adminUserService = inject(AdminUserService);
   private readonly fb = inject(FormBuilder);
   private readonly toastService = inject(ToastrService);
+  private readonly pusherService = inject(PusherService);
 
   readonly administrativeRoles = ADMINISTRATIVE_ROLE_OPTIONS;
   readonly users = signal<AdministrativeUser[]>([]);
@@ -27,6 +30,15 @@ export class AdminUsersComponent {
   readonly showModal = signal(false);
   readonly listError = signal('');
   readonly editingId = signal<number | null>(null);
+
+  // Pagination
+  currentPage = signal(1);
+  pageSize = signal(10);
+  totalPages = signal(1);
+  totalCount = signal(0);
+
+  private pusherSubscription?: Subscription;
+
   private readonly passwordMatchValidator = (group: AbstractControl) => {
     const password = group.get('password')?.value;
     const confirmPassword = group.get('confirmPassword')?.value;
@@ -50,25 +62,69 @@ export class AdminUsersComponent {
     { validators: this.passwordMatchValidator }
   );
 
-  constructor() {
+  ngOnInit() {
     this.loadUsers();
+    this.subscribeToPusher();
+  }
+
+  ngOnDestroy() {
+    this.pusherSubscription?.unsubscribe();
+  }
+
+  subscribeToPusher() {
+    this.pusherSubscription = this.pusherService.orderNotifications$.subscribe({
+      next: (data) => {
+        console.log('[ADMIN] WebSocket: Nuevo pedido detectado!', data);
+        this.toastService.info(`Nuevo pedido recibido (#${data.id || ''})`, '¡Venta en Línea!');
+        this.loadUsers();
+      }
+    });
+
+    this.pusherService.subscribeToChannel('orders-channel', 'order-updated-global', () => {
+      this.loadUsers();
+    });
   }
 
   loadUsers() {
     this.loading.set(true);
     this.listError.set('');
 
-    this.adminUserService.getAdministrativeUsers().pipe(
+    this.adminUserService.getPagedAdministrativeUsers(this.currentPage(), this.pageSize()).pipe(
       finalize(() => this.loading.set(false))
     ).subscribe({
-      next: (users) => this.users.set(users),
+      next: (data) => {
+        this.users.set(data.items.sort((a, b) => b.id - a.id));
+        this.totalPages.set(data.totalPages);
+        this.totalCount.set(data.totalCount);
+      },
       error: () => {
-        this.users.set([]);
-        this.listError.set(
-          'No se pudo cargar el listado de usuarios administrativos. Verifica que el backend exponga GET /api/Users.'
-        );
+        // Fallback
+        this.adminUserService.getAdministrativeUsers().pipe(
+          finalize(() => this.loading.set(false))
+        ).subscribe({
+          next: (users) => {
+            const sorted = users.sort((a, b) => b.id - a.id);
+            this.totalCount.set(sorted.length);
+            this.totalPages.set(Math.ceil(sorted.length / this.pageSize()));
+            const start = (this.currentPage() - 1) * this.pageSize();
+            this.users.set(sorted.slice(start, start + this.pageSize()));
+          },
+          error: () => {
+            this.users.set([]);
+            this.listError.set(
+              'No se pudo cargar el listado de usuarios administrativos. Verifica que el backend exponga GET /api/Users.'
+            );
+          }
+        });
       }
     });
+  }
+
+  changePage(page: number) {
+    if (page >= 1 && page <= this.totalPages()) {
+      this.currentPage.set(page);
+      this.loadUsers();
+    }
   }
 
   openModal(user?: AdministrativeUser) {
@@ -146,5 +202,4 @@ export class AdminUsersComponent {
       }
     });
   }
-
 }

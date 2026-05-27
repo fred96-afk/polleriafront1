@@ -22,6 +22,9 @@ export interface OrderResponse {
   paymentUrl?: string | null;
   pdfUrl?: string | null;
   notas?: string | null;
+  customerName?: string | null;
+  customerAddress?: string | null;
+  customerPhone?: string | null;
 }
 
 export interface OrderDetailRequest {
@@ -34,10 +37,13 @@ export interface OrderRequest {
   clientId?: number | null;
   userId: number;
   deliveryUserId?: number | null;
+  details?: OrderDetailRequest[] | null;
   isPos?: boolean;
-  details: OrderDetailRequest[];
   customerName?: string | null;
+  customerAddress?: string | null;
+  customerPhone?: string | null;
   documentNumber?: string | null;
   documentType?: string | null;
   customerEmail?: string | null;
+  isPickup?: boolean;
 }

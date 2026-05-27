@@ -9,6 +9,7 @@ export interface ConsultaData {
   numero: string;
   success: boolean;
   message?: string;
+  direccion?: string;
 }
 
 @Injectable({
@@ -32,7 +33,8 @@ export class DniService {
             success: true,
             nombre,
             razonSocial: this.toCleanString(res?.razonSocial),
-            numero: res.numero || num
+            numero: res.numero || num,
+            direccion: this.toCleanString(res?.direccion || res?.direccionCompleta || res?.domicilioFiscal)
           } as ConsultaData;
         }
         return {

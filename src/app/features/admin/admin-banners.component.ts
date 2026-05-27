@@ -46,7 +46,7 @@ export class AdminBannersComponent {
     this.bannerService.getPagedBanners(this.currentPage(), this.pageSize()).pipe(
       finalize(() => this.loading.set(false))
     ).subscribe(data => {
-      this.banners.set(data.items);
+      this.banners.set(data.items.sort((a, b) => b.id - a.id));
       this.totalPages.set(data.totalPages);
       this.totalCount.set(data.totalCount);
     });

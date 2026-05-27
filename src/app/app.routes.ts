@@ -12,6 +12,7 @@ import { AdminComponent } from './features/admin/admin.component';
 import { CheckoutResultComponent } from './features/customer/checkout-result.component';
 import { OrderTrackingComponent } from './features/customer/order-tracking.component';
 import { OrderHistoryComponent } from './features/customer/order-history.component';
+import { DeliveryOrdersComponent } from './features/delivery/delivery-orders.component';
 
 import { AdminProductsComponent } from './features/admin/admin-products.component';
 import { AdminClientsComponent } from './features/admin/admin-clients.component';
@@ -22,7 +23,7 @@ import { AdminUsersComponent } from './features/admin/admin-users.component';
 import { AdminEmpleadosComponent } from './features/admin/admin-empleados.component';
 import { AdminReportsComponent } from './features/admin/admin-reports.component';
 import { AdminDashboardComponent } from './features/admin/admin-dashboard.component';
-import { adminDashboardGuard, internalAccessGuard, posGuard } from './guards/role.guard';
+import { adminDashboardGuard, deliveryGuard, internalAccessGuard, posGuard } from './guards/role.guard';
 
 export const routes: Routes = [
   // Parte Pública (Cliente)
@@ -36,7 +37,9 @@ export const routes: Routes = [
   { path: 'checkout/failure', component: CheckoutResultComponent },
   { path: 'checkout/pending', component: CheckoutResultComponent },
   { path: 'order-tracking/:id', component: OrderTrackingComponent },
+  { path: 'tracking', component: OrderTrackingComponent },
   { path: 'order-history', component: OrderHistoryComponent },
+  { path: 'delivery', component: DeliveryOrdersComponent, canActivate: [deliveryGuard] },
 
   // Parte Administrativa
   { path: 'admin/login', component: AdminLoginComponent },

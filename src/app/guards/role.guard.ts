@@ -41,6 +41,23 @@ export const adminDashboardGuard: CanActivateFn = () => {
   return denyAccess(router, authService, '/admin/login');
 };
 
+export const deliveryGuard: CanActivateFn = () => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  if (!authService.isAuthenticated()) {
+    // Los repartidores son staff, deben loguearse en la parte administrativa
+    return router.createUrlTree(['/admin/login']);
+  }
+
+  if (authService.isDelivery() || authService.isAdministrator()) {
+    return true;
+  }
+
+  // Si está logueado pero no es delivery, lo mandamos al inicio
+  return router.createUrlTree(['/']);
+};
+
 export const posGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
   const router = inject(Router);

@@ -63,7 +63,7 @@ export class CatalogoService {
     if (!Array.isArray(data)) return [];
 
     return data.map(item => ({
-      id: item.id ?? item.Id ?? item.idTipoDocumento,
+      id: item.id ?? item.Id ?? item.idTipoDocumento ?? item.idEstado ?? item.idMetodo ?? item.idCargo ?? item.idCategoria ?? item.idComprobante,
       nombre: item.nombre ?? item.Nombre ?? item.descripcion ?? item.name ?? item.Name,
       ...item
     }));

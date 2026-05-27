@@ -61,7 +61,7 @@ export class AdminProductsComponent {
     this.productService.getPagedProducts(this.currentPage(), this.pageSize(), this.searchTerm()).pipe(
       finalize(() => this.loading.set(false))
     ).subscribe(data => {
-      this.products.set(data.items);
+      this.products.set(data.items.sort((a, b) => b.id - a.id));
       this.totalPages.set(data.totalPages);
       this.totalCount.set(data.totalCount);
     });

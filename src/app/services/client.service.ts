@@ -1,7 +1,8 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { enviroment } from '../../enviroments/enviroments.development';
 import { ClientRequest, ClientResponse } from '../models/client.model';
+import { PagedResponse } from '../models/product.model';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -13,6 +14,14 @@ export class ClientService {
 
   getClients(): Observable<ClientResponse[]> {
     return this.http.get<ClientResponse[]>(this.apiUrl);
+  }
+
+  getPagedClients(pageNumber: number, pageSize: number): Observable<PagedResponse<ClientResponse>> {
+    const params = new HttpParams()
+      .set('PageNumber', pageNumber.toString())
+      .set('PageSize', pageSize.toString());
+
+    return this.http.get<PagedResponse<ClientResponse>>(`${this.apiUrl}/paged`, { params });
   }
 
   getClientById(id: number): Observable<ClientResponse> {

@@ -1,0 +1,295 @@
+<div class="min-h-screen bg-gray-50 pb-24">
+  <!-- Header App Delivery -->
+  <header class="bg-gray-900 px-6 pt-12 pb-10 rounded-b-[48px] shadow-2xl sticky top-0 z-30">
+    <div class="max-w-xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <div class="w-14 h-14 bg-orange-600 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-900/40 border border-orange-50">
+          <span class="material-icons-outlined text-white text-3xl">local_shipping</span>
+        </div>
+        <div>
+          <h1 class="text-2xl font-black text-white tracking-tighter uppercase leading-none">Rider App</h1>
+          <p class="text-[10px] font-bold text-orange-500 uppercase tracking-[0.2em] mt-1">{{ authService.displayName }}</p>
+        </div>
+      </div>
+      <button (click)="loadOrders()" class="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-all">
+        <span class="material-icons-outlined" [class.animate-spin]="loading()">refresh</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="max-w-xl mx-auto px-6 mt-8">
+    <!-- Tabs Expressive -->
+    <div class="flex p-1.5 bg-gray-200 rounded-[32px] mb-8 shadow-inner">
+      <button 
+        (click)="activeTab.set('available')"
+        [class.bg-white]="activeTab() === 'available'"
+        [class.text-gray-900]="activeTab() === 'available'"
+        [class.shadow-md]="activeTab() === 'available'"
+        [class.text-gray-500]="activeTab() !== 'available'"
+        class="flex-1 py-4 rounded-[28px] text-xs font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2"
+      >
+        <span class="material-icons-outlined text-lg">list_alt</span>
+        Pendientes
+        @if (availableOrders().length > 0) {
+            <span class="w-5 h-5 bg-orange-600 text-white text-[10px] rounded-full flex items-center justify-center">{{ availableOrders().length }}</span>
+        }
+      </button>
+      <button 
+        (click)="activeTab.set('my-deliveries')"
+        [class.bg-white]="activeTab() === 'my-deliveries'"
+        [class.text-gray-900]="activeTab() === 'my-deliveries'"
+        [class.shadow-md]="activeTab() === 'my-deliveries'"
+        [class.text-gray-500]="activeTab() !== 'my-deliveries'"
+        class="flex-1 py-4 rounded-[28px] text-xs font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2"
+      >
+        <span class="material-icons-outlined text-lg">motorcycle</span>
+        Mis Entregas
+        @if (myDeliveries().length > 0) {
+            <span class="w-5 h-5 bg-green-600 text-white text-[10px] rounded-full flex items-center justify-center">{{ myDeliveries().length }}</span>
+        }
+      </button>
+    </div>
+
+    @if (loading()) {
+        <div class="space-y-6 animate-in fade-in duration-500">
+            @for (i of [1,2,3]; track i) {
+                <div class="bg-white rounded-[40px] border border-gray-100 p-8">
+                    <div class="flex justify-between items-start mb-6">
+                        <div class="space-y-2 w-1/2">
+                            <div class="h-2 bg-gray-100 rounded-full w-1/3 animate-pulse"></div>
+                            <div class="h-6 bg-gray-100 rounded-xl w-3/4 animate-pulse"></div>
+                        </div>
+                        <div class="w-24 h-8 bg-gray-50 rounded-full animate-pulse"></div>
+                    </div>
+                    <div class="space-y-4 mb-8">
+                        <div class="flex gap-4">
+                            <div class="w-10 h-10 bg-gray-50 rounded-2xl animate-pulse shrink-0"></div>
+                            <div class="h-4 bg-gray-100 rounded-full w-2/3 mt-3 animate-pulse"></div>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="w-10 h-10 bg-gray-50 rounded-2xl animate-pulse shrink-0"></div>
+                            <div class="h-4 bg-gray-100 rounded-full w-1/3 mt-3 animate-pulse"></div>
+                        </div>
+                    </div>
+                    <div class="h-16 bg-gray-100 rounded-[24px] w-full animate-pulse"></div>
+                </div>
+            }
+        </div>
+    } @else {
+        <!-- Listado de Pedidos -->
+        <div class="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            @if (activeTab() === 'available') {
+                @for (order of availableOrders(); track order.id) {
+                    <div class="bg-white rounded-[40px] shadow-sm border border-gray-100 overflow-hidden group">
+                        <div class="p-8">
+                            <div class="flex justify-between items-start mb-6">
+                                <div>
+                                    <span class="text-[10px] font-black text-gray-300 uppercase tracking-widest leading-none">Pedido #{{ order.id }}</span>
+                                    <h3 class="text-xl font-black text-gray-900 tracking-tighter uppercase">{{ order.customerName || 'Cliente' }}</h3>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button (click)="toggleOrderDetails(order.id)" class="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 hover:bg-orange-50 hover:text-orange-600 transition-all">
+                                        <span class="material-icons-outlined text-xl">{{ selectedOrderId() === order.id ? 'expand_less' : 'list_alt' }}</span>
+                                    </button>
+                                    <div [class]="'px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm ' + getStatusClass(order.status)">
+                                        {{ getStatusLabel(order.status) }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            @if (selectedOrderId() === order.id) {
+                                <div class="mb-6 animate-in fade-in slide-in-from-top-2 duration-300 bg-orange-50/20 p-4 rounded-3xl border border-orange-100/50">
+                                    <p class="text-[9px] font-black text-orange-400 uppercase tracking-widest mb-3">Contenido del pedido:</p>
+                                    <div class="space-y-2">
+                                        @for (detalle of order.details; track detalle.id) {
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center gap-2">
+                                                    <span class="text-xs font-black text-orange-600">{{ detalle.quantity }}x</span>
+                                                    <span class="text-[11px] font-bold text-gray-600 uppercase tracking-tight">{{ detalle.productName }}</span>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+
+                            <div class="space-y-4 mb-8">
+                                <div class="flex items-start gap-4">
+                                    <div class="w-10 h-10 bg-gray-50 rounded-2xl flex items-center justify-center shrink-0">
+                                        <span class="material-icons-outlined text-gray-400">place</span>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-bold text-gray-600 leading-snug">{{ order.customerAddress || 'Sin dirección registrada' }}</p>
+                                        @if (order.customerAddress === 'RECOJO EN TIENDA') {
+                                            <span class="text-[10px] font-black text-orange-600 uppercase tracking-widest bg-orange-50 px-2 py-0.5 rounded">Pasar por local</span>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <div class="w-10 h-10 bg-gray-50 rounded-2xl flex items-center justify-center shrink-0">
+                                        <span class="material-icons-outlined text-gray-400">shopping_bag</span>
+                                    </div>
+                                    <p class="text-sm font-bold text-gray-600">{{ order.details.length }} productos</p>
+                                </div>
+                            </div>
+
+                            <button 
+                                (click)="acceptOrder(order.id)"
+                                class="w-full bg-orange-600 text-white py-5 rounded-[24px] font-black hover:bg-orange-700 transition-all active:scale-95 shadow-xl shadow-orange-100 uppercase tracking-widest text-xs flex items-center justify-center gap-3"
+                            >
+                                <span class="material-icons-outlined">check_circle</span>
+                                Aceptar para Entrega
+                            </button>
+                        </div>
+                    </div>
+                } @empty {
+                    <div class="bg-white rounded-[40px] p-12 text-center border-2 border-dashed border-gray-200">
+                        <span class="material-icons-outlined text-gray-200 text-6xl mb-4">no_food</span>
+                        <p class="text-gray-400 font-bold italic">No hay pedidos disponibles por ahora.</p>
+                    </div>
+                }
+            } @else {
+                <!-- Mis Entregas Activas -->
+                @for (order of myDeliveries(); track order.id) {
+                    <div class="bg-white rounded-[40px] shadow-sm border-2 border-orange-100 overflow-hidden relative">
+                        <div class="absolute top-0 right-0 p-4">
+                            <span class="bg-orange-600 text-white text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-lg">Activo</span>
+                        </div>
+                        
+                        <!-- Header del Pedido -->
+                        <div class="p-8 border-b border-gray-50 flex justify-between items-center">
+                            <div>
+                                <span class="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em]">Pedido Activo</span>
+                                <h3 class="text-2xl font-black text-gray-900 tracking-tighter uppercase leading-none mt-1">#{{ order.id }}</h3>
+                            </div>
+                            <button (click)="toggleOrderDetails(order.id)" class="text-orange-600 font-black text-[10px] uppercase tracking-widest hover:bg-orange-50 px-4 py-2 rounded-xl transition-all">
+                                {{ selectedOrderId() === order.id ? 'Ver menos' : 'Ver detalles' }}
+                            </button>
+                        </div>
+                        
+                        <div class="p-8">
+                            @if (selectedOrderId() === order.id) {
+                                <!-- Detalles del Contenido del Pedido -->
+                                <div class="mb-8 animate-in fade-in slide-in-from-top-4 duration-500">
+                                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Lo que el cliente pidió:</p>
+                                    <div class="space-y-3">
+                                        @for (detalle of order.details; track detalle.id) {
+                                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100/50">
+                                                <div class="flex items-center gap-3">
+                                                    <span class="w-8 h-8 rounded-lg bg-white flex items-center justify-center font-black text-orange-600 text-xs shadow-sm">{{ detalle.quantity }}</span>
+                                                    <span class="text-sm font-bold text-gray-700 uppercase tracking-tight">{{ detalle.productName }}</span>
+                                                </div>
+                                                <span class="text-xs font-black text-gray-400 italic">S/ {{ detalle.subtotal.toFixed(2) }}</span>
+                                            </div>
+                                        }
+                                    </div>
+                                    <div class="flex justify-between items-center mt-4 px-2">
+                                        <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total del Pedido:</span>
+                                        <span class="text-lg font-black text-gray-900 tracking-tighter">S/ {{ order.totalAmount.toFixed(2) }}</span>
+                                    </div>
+                                </div>
+
+                                <!-- Mapa en Tiempo Real (Embebido) -->
+                                @if (order.customerAddress && order.customerAddress !== 'RECOJO EN TIENDA') {
+                                    <div class="mb-8 rounded-3xl overflow-hidden border-4 border-gray-50 shadow-inner h-[250px] relative bg-gray-100 group">
+                                        <iframe 
+                                            width="100%" 
+                                            height="100%" 
+                                            frameborder="0" 
+                                            style="border:0"
+                                            [src]="getMapUrl(order.customerAddress)" 
+                                            allowfullscreen
+                                            class="grayscale-[0.2] contrast-[1.1]"
+                                        ></iframe>
+                                        <div class="absolute top-4 left-4 bg-white/90 backdrop-blur px-4 py-2 rounded-2xl shadow-xl flex items-center gap-2 border border-white">
+                                            <span class="material-icons-outlined text-orange-600 text-sm">navigation</span>
+                                            <span class="text-[10px] font-black uppercase tracking-widest text-gray-800">Destino: {{ order.customerAddress }}</span>
+                                        </div>
+                                    </div>
+                                }
+                            }
+
+                            <div class="mb-8">
+                                <span class="text-[10px] font-black text-gray-300 uppercase tracking-widest">Entregando a</span>
+                                <h3 class="text-3xl font-black text-gray-900 tracking-tighter uppercase leading-none mt-1">{{ order.customerName || 'Cliente' }}</h3>
+                                <div class="flex flex-wrap items-center gap-2 mt-4">
+                                    @if (order.customerPhone) {
+                                        <a [href]="'tel:' + order.customerPhone" class="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-green-100 transition-all shadow-sm border border-green-100">
+                                            <span class="material-icons-outlined text-base">phone</span>
+                                            Llamar: {{ order.customerPhone }}
+                                        </a>
+                                    }
+                                    <button 
+                                        (click)="openNavigation(order.customerAddress)" 
+                                        [disabled]="!order.customerAddress || order.customerAddress === 'RECOJO EN TIENDA'"
+                                        class="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-blue-100 transition-all shadow-sm border border-blue-100 disabled:opacity-50 disabled:grayscale"
+                                    >
+                                        <span class="material-icons-outlined text-base">map</span>
+                                        Google Maps
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="bg-gray-50 rounded-[32px] p-6 mb-8 border border-gray-100">
+                                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Dirección / Ubicación</p>
+                                <p class="text-lg font-black text-gray-700 leading-tight">{{ order.customerAddress || 'Sin dirección registrada' }}</p>
+                                @if (order.customerAddress === 'RECOJO EN TIENDA') {
+                                    <p class="text-xs font-black text-orange-600 uppercase mt-2 bg-orange-100/50 inline-block px-3 py-1 rounded-lg">El cliente vendrá a recoger</p>
+                                }
+                                @if (order.notas) {
+                                    <div class="mt-4 pt-4 border-t border-gray-200">
+                                        <p class="text-[10px] font-black text-orange-600 uppercase tracking-widest mb-1 italic">Notas de Entrega:</p>
+                                        <p class="text-xs font-bold text-gray-500 italic">{{ order.notas }}</p>
+                                    </div>
+                                }
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                @if (order.status.toLowerCase() !== 'onway') {
+                                    <button 
+                                        (click)="updateStatus(order.id, 'onway')"
+                                        class="bg-gray-900 text-white py-5 rounded-[24px] font-black hover:bg-gray-800 transition-all active:scale-95 uppercase tracking-widest text-[10px] flex items-center justify-center gap-2"
+                                    >
+                                        <span class="material-icons-outlined text-lg">local_shipping</span>
+                                        En camino
+                                    </button>
+                                }
+                                <button 
+                                    (click)="updateStatus(order.id, 'delivered')"
+                                    [class.col-span-2]="order.status.toLowerCase() === 'onway'"
+                                    class="bg-green-600 text-white py-5 rounded-[24px] font-black hover:bg-green-700 transition-all active:scale-95 shadow-xl shadow-green-100 uppercase tracking-widest text-[10px] flex items-center justify-center gap-2"
+                                >
+                                    <span class="material-icons-outlined text-lg">verified</span>
+                                    Entregado
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                } @empty {
+                    <div class="bg-white rounded-[40px] p-12 text-center border-2 border-dashed border-gray-200">
+                        <span class="material-icons-outlined text-gray-200 text-6xl mb-4">sports_motorsports</span>
+                        <p class="text-gray-400 font-bold italic">No tienes entregas activas.</p>
+                        <button (click)="activeTab.set('available')" class="mt-6 text-orange-600 font-black text-xs uppercase tracking-widest hover:underline">Ver pedidos disponibles</button>
+                    </div>
+                }
+            }
+        </div>
+    }
+  </div>
+
+  <!-- Bottom Navigation (Móvil) -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 py-4 flex justify-around items-center z-50 md:hidden shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)]">
+      <button (click)="activeTab.set('available')" [class.text-orange-600]="activeTab() === 'available'" class="flex flex-col items-center gap-1 transition-colors">
+          <span class="material-icons-outlined">receipt_long</span>
+          <span class="text-[8px] font-black uppercase tracking-widest">Pendientes</span>
+      </button>
+      <a routerLink="/" class="flex flex-col items-center gap-1 text-gray-400">
+          <span class="material-icons-outlined">home</span>
+          <span class="text-[8px] font-black uppercase tracking-widest">Inicio</span>
+      </a>
+      <button (click)="activeTab.set('my-deliveries')" [class.text-orange-600]="activeTab() === 'my-deliveries'" class="flex flex-col items-center gap-1 transition-colors">
+          <span class="material-icons-outlined">motorcycle</span>
+          <span class="text-[8px] font-black uppercase tracking-widest">Mis Rutas</span>
+      </button>
+  </nav>
+</div>

@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { enviroment } from '../../enviroments/enviroments.development';
@@ -8,6 +8,7 @@ import {
   getAdministrativeRoleName
 } from '../models/admin-user.model';
 import { UserRequest } from '../models/auth.model';
+import { PagedResponse } from '../models/product.model';
 
 @Injectable({
   providedIn: 'root'
@@ -21,6 +22,19 @@ export class AdminUserService {
       map((response) => this.extractCollection(response)),
       map((users) => users.map((user) => this.normalizeUser(user)).filter((user): user is AdministrativeUser => user !== null)),
       map((users) => users.filter((user) => ADMINISTRATIVE_ROLE_IDS.has(user.roleId)))
+    );
+  }
+
+  getPagedAdministrativeUsers(pageNumber: number, pageSize: number): Observable<PagedResponse<AdministrativeUser>> {
+    const params = new HttpParams()
+      .set('PageNumber', pageNumber.toString())
+      .set('PageSize', pageSize.toString());
+
+    return this.http.get<unknown>(`${this.usersApiUrl}/paged`, { params }).pipe(
+      map((response: any) => ({
+        ...response,
+        items: (response.items || []).map((user: any) => this.normalizeUser(user)).filter((user: any) => user !== null && ADMINISTRATIVE_ROLE_IDS.has(user.roleId))
+      }))
     );
   }
 

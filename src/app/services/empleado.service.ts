@@ -1,8 +1,9 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { enviroment } from '../../enviroments/enviroments.development';
 import { EmpleadoRequest, EmpleadoResponse } from '../models/empleado.model';
+import { PagedResponse } from '../models/product.model';
 
 @Injectable({
   providedIn: 'root',
@@ -13,6 +14,14 @@ export class EmpleadoService {
 
   getEmpleados(): Observable<EmpleadoResponse[]> {
     return this.http.get<EmpleadoResponse[]>(this.apiUrl);
+  }
+
+  getPagedEmpleados(pageNumber: number, pageSize: number): Observable<PagedResponse<EmpleadoResponse>> {
+    const params = new HttpParams()
+      .set('PageNumber', pageNumber.toString())
+      .set('PageSize', pageSize.toString());
+
+    return this.http.get<PagedResponse<EmpleadoResponse>>(`${this.apiUrl}/paged`, { params });
   }
 
   getEmpleadoById(id: number): Observable<EmpleadoResponse> {

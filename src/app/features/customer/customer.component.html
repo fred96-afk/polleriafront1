@@ -16,15 +16,14 @@
         <div class="flex items-center space-x-6">
           <!-- Botón de Seguimiento Rápido -->
           <div class="hidden md:flex items-center">
-             <button 
-                (click)="openTrackingDialog()" 
-                class="flex items-center gap-2 px-4 py-2 rounded-full border-2 border-orange-100 text-orange-600 font-black text-xs uppercase tracking-widest hover:bg-orange-50 transition-all shadow-sm"
+             <a
+               routerLink="/tracking"
+               class="flex items-center gap-2 px-4 py-2 rounded-full border-2 border-orange-100 text-orange-600 font-black text-xs uppercase tracking-widest hover:bg-orange-50 transition-all shadow-sm"
              >
                 <span class="material-icons-outlined text-base">local_shipping</span>
                 <span>Seguir Pedido</span>
-             </button>
+             </a>
           </div>
-
           <!-- Mi Cuenta / User Dropdown -->
           <div class="relative">
             @if (authService.isAuthenticated()) {
@@ -234,57 +233,45 @@
                 >
               </div>
 
+              <!-- Método de Entrega -->
               <div class="space-y-2">
-                <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Dirección de Entrega</label>
-                <div class="flex gap-2">
-                  <div class="relative flex-1">
-                    <span class="material-icons-outlined absolute left-5 top-4 text-orange-600">location_on</span>
-                    <input 
-                      type="text" 
-                      #addressInput
-                      formControlName="address"
-                      placeholder="Ej: Av. Los Incas 450 - Interior 3"
-                      class="w-full pl-14 pr-6 py-4 rounded-2xl border-2 border-gray-100 focus:border-orange-500 outline-none transition-all font-bold text-gray-800"
-                    >
-                  </div>
+                <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Método de Entrega</label>
+                <div class="grid grid-cols-2 gap-4">
                   <button 
                     type="button"
-                    (click)="searchAddress(addressInput.value)"
-                    class="bg-gray-100 p-4 rounded-2xl text-gray-600 hover:bg-orange-50 hover:text-orange-600 transition-all flex items-center justify-center"
-                    title="Ubicar en el mapa"
+                    (click)="checkoutForm.get('deliveryMethod')?.setValue('delivery')"
+                    [class]="checkoutForm.get('deliveryMethod')?.value === 'delivery' ? 'border-orange-500 bg-orange-50 text-orange-700 ring-2 ring-orange-500/20' : 'border-gray-100 bg-white text-gray-400 hover:border-gray-200'"
+                    class="flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all group"
                   >
-                    <span class="material-icons-outlined">search</span>
+                    <span class="material-icons-outlined mb-1 group-hover:scale-110 transition-transform">local_shipping</span>
+                    <span class="text-[10px] font-black uppercase tracking-widest">A Domicilio</span>
+                  </button>
+                  <button 
+                    type="button"
+                    (click)="checkoutForm.get('deliveryMethod')?.setValue('pickup')"
+                    [class]="checkoutForm.get('deliveryMethod')?.value === 'pickup' ? 'border-orange-500 bg-orange-50 text-orange-700 ring-2 ring-orange-500/20' : 'border-gray-100 bg-white text-gray-400 hover:border-gray-200'"
+                    class="flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all group"
+                  >
+                    <span class="material-icons-outlined mb-1 group-hover:scale-110 transition-transform">storefront</span>
+                    <span class="text-[10px] font-black uppercase tracking-widest">Recojo en Tienda</span>
                   </button>
                 </div>
               </div>
 
-              <!-- Google Maps Section -->
-              <div class="space-y-4 pt-2">
-                <div class="flex items-center justify-between">
-                  <span class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Ubica tu dirección en el mapa</span>
-                  <button 
-                    type="button" 
-                    (click)="getCurrentLocation()"
-                    class="text-[10px] font-black text-orange-600 uppercase tracking-widest hover:underline flex items-center gap-1"
-                  >
-                    <span class="material-icons-outlined text-sm">my_location</span>
-                    Usar mi ubicación actual
-                  </button>
+              @if (checkoutForm.get('deliveryMethod')?.value === 'delivery') {
+                <div class="space-y-2 animate-in fade-in slide-in-from-top-4 duration-500">
+                  <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Dirección de Entrega</label>
+                  <div class="relative">
+                    <span class="material-icons-outlined absolute left-5 top-4 text-orange-600">location_on</span>
+                    <input 
+                      type="text" 
+                      formControlName="address"
+                      placeholder="Ej: Jr. Cajamarca 611"
+                      class="w-full pl-14 pr-6 py-4 rounded-2xl border-2 border-gray-100 focus:border-orange-500 outline-none transition-all font-bold text-gray-800"
+                    >
+                  </div>
                 </div>
-                <div class="w-full h-48 rounded-3xl overflow-hidden border-2 border-gray-100 shadow-inner relative group">
-                  <iframe 
-                    [src]="currentMapUrl()" 
-                    width="100%" 
-                    height="100%" 
-                    style="border:0;" 
-                    allowfullscreen="" 
-                    loading="lazy" 
-                    referrerpolicy="no-referrer-when-downgrade">
-                  </iframe>
-                  <div class="absolute inset-0 bg-black/5 pointer-events-none group-hover:bg-transparent transition-colors"></div>
-                </div>
-                <p class="text-[9px] text-gray-400 italic">Mueve el mapa para precisar tu ubicación exacta (esto ayuda a que nuestro repartidor llegue más rápido).</p>
-              </div>
+              }
 
               <div class="space-y-2">
                 <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Notas adicionales (Opcional)</label>
@@ -579,13 +566,21 @@
           <p class="text-sm">Av. Ernesto Morales n° 615<br>Ascension - Huancavelica</p>
           <p class="text-xl font-black text-white tracking-tighter">979 773 270</p>
         </div>
-        <div class="pt-6">
+        <div class="pt-6 flex flex-wrap justify-center md:justify-end gap-4">
+          <button 
+            type="button"
+            (click)="goDelivery()"
+            class="inline-flex items-center gap-3 text-[10px] font-black text-orange-500 hover:text-white hover:bg-orange-600 uppercase tracking-[0.3em] transition-all border-2 border-orange-900/30 px-6 py-4 rounded-2xl"
+          >
+            <span class="material-icons-outlined text-lg">motorcycle</span>
+            Soy Repartidor
+          </button>
           <a 
             routerLink="/admin/login" 
-            class="inline-flex items-center gap-2 text-[10px] font-black text-gray-600 hover:text-orange-500 uppercase tracking-[0.3em] transition-all border-2 border-gray-900 px-6 py-3 rounded-xl hover:border-orange-900/30"
+            class="inline-flex items-center gap-2 text-[10px] font-black text-gray-700 hover:text-gray-300 uppercase tracking-[0.3em] transition-all border-2 border-gray-900 px-6 py-4 rounded-2xl"
           >
             <span class="material-icons-outlined text-sm">admin_panel_settings</span>
-            Login Staff
+            Staff
           </a>
         </div>
       </div>

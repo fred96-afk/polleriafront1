@@ -181,9 +181,10 @@ export class AuthService {
     return this.http.post<void>(`${this.apiUrl}/registerclient`, request);
   }
 
-  verifyEmail(token: string): Observable<void> {
-    return this.http.get<void>(`${this.apiUrl}/verify-email`, {
-      params: { token }
+  verifyEmail(token: string): Observable<string> {
+    return this.http.get(`${this.apiUrl}/verify-email`, {
+      params: { token },
+      responseType: 'text'
     });
   }
 
@@ -191,8 +192,10 @@ export class AuthService {
     return this.http.post<void>(`${this.apiUrl}/forgot-password`, request);
   }
 
-  resetPassword(request: ResetPasswordRequest): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/reset-password`, request);
+  resetPassword(request: ResetPasswordRequest): Observable<string> {
+    return this.http.post(`${this.apiUrl}/reset-password`, request, {
+      responseType: 'text'
+    });
   }
 
   logout() {

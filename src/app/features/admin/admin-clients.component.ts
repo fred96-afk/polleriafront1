@@ -22,6 +22,12 @@ export class AdminClientsComponent {
   showModal = signal(false);
   editingId = signal<number | null>(null);
 
+  // Pagination
+  currentPage = signal(1);
+  pageSize = signal(10);
+  totalPages = signal(1);
+  totalCount = signal(0);
+
   clientForm = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(3)]],
     documentNumber: ['', [Validators.required, Validators.pattern(/^[0-9]{8,11}$/)]],
@@ -35,9 +41,34 @@ export class AdminClientsComponent {
 
   loadClients() {
     this.loading.set(true);
-    this.clientService.getClients().pipe(
+    this.clientService.getPagedClients(this.currentPage(), this.pageSize()).pipe(
       finalize(() => this.loading.set(false))
-    ).subscribe(data => this.clients.set(data));
+    ).subscribe({
+      next: (data) => {
+        this.clients.set(data.items.sort((a, b) => b.id - a.id));
+        this.totalPages.set(data.totalPages);
+        this.totalCount.set(data.totalCount);
+      },
+      error: () => {
+        // Fallback
+        this.clientService.getClients().pipe(
+          finalize(() => this.loading.set(false))
+        ).subscribe(data => {
+          const sorted = data.sort((a, b) => b.id - a.id);
+          this.totalCount.set(sorted.length);
+          this.totalPages.set(Math.ceil(sorted.length / this.pageSize()));
+          const start = (this.currentPage() - 1) * this.pageSize();
+          this.clients.set(sorted.slice(start, start + this.pageSize()));
+        });
+      }
+    });
+  }
+
+  changePage(page: number) {
+    if (page >= 1 && page <= this.totalPages()) {
+      this.currentPage.set(page);
+      this.loadClients();
+    }
   }
 
   openModal(client?: ClientResponse) {
