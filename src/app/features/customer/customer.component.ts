@@ -9,6 +9,7 @@ import { BannerService } from '../../services/banner.service';
 import { CatalogoService } from '../../services/catalogo.service';
 import { DniService } from '../../services/dni.service';
 import { ClientService } from '../../services/client.service';
+import { HomeCacheService, HomeData } from '../../services/home-cache.service';
 import { ProductResponse } from '../../models/product.model';
 import { Banner } from '../../models/banner.model';
 import { OrderDetailRequest, OrderRequest } from '../../models/order.model';
@@ -59,6 +60,7 @@ export class CustomerComponent implements OnInit, OnDestroy {
   private readonly catalogoService = inject(CatalogoService);
   private readonly dniService = inject(DniService);
   private readonly clientService = inject(ClientService);
+  private readonly homeCacheService = inject(HomeCacheService);
   private readonly router = inject(Router);
   private readonly toastService = inject(ToastrService);
   private readonly fb = inject(FormBuilder);
@@ -99,27 +101,11 @@ export class CustomerComponent implements OnInit, OnDestroy {
   });
 
   constructor() {
-    this.loadProducts();
-
-    this.bannerService.getBanners().subscribe(data => {
-      this.banners.set(data.filter(b => b.isActive).sort((a, b) => a.order - b.order));
-    });
-
-    this.catalogoService.getTiposDocumento().subscribe(data => {
-      this.tiposDocumento.set(data);
-      if (data.length > 0 && !this.checkoutForm.value.idTipoDocumento) {
-        this.checkoutForm.patchValue({ idTipoDocumento: data[0].id });
-      }
-      
-      // Intentar cargar datos del cliente después de tener los tipos de documento
-      this.loadClientData();
-    });
+    this.loadInitialData();
 
     if (this.authService.isAuthenticated()) {
       this.checkoutForm.patchValue({ name: this.authService.displayName });
     }
-
-    this.loadCatalogos();
 
     // Escuchar cambios en deliveryMethod para ajustar validación de dirección
     this.checkoutForm.get('deliveryMethod')?.valueChanges.subscribe(method => {
@@ -131,6 +117,37 @@ export class CustomerComponent implements OnInit, OnDestroy {
       }
       addressControl?.updateValueAndValidity();
     });
+  }
+
+  loadInitialData(forceRefresh = false) {
+    this.loadingProducts.set(true);
+    this.homeCacheService.getHomeData(this.currentPage(), this.pageSize(), this.searchTerm(), forceRefresh)
+      .pipe(finalize(() => this.loadingProducts.set(false)))
+      .subscribe({
+        next: (data: HomeData) => {
+          this.banners.set(data.banners.filter((b: Banner) => b.isActive).sort((a: Banner, b: Banner) => a.order - b.order));
+          
+          this.products.set(data.products.items);
+          this.totalPages.set(data.products.totalPages);
+          this.totalCount.set(data.products.totalCount);
+
+          this.tiposDocumento.set(data.tiposDocumento);
+          if (data.tiposDocumento.length > 0 && !this.checkoutForm.value.idTipoDocumento) {
+            this.checkoutForm.patchValue({ idTipoDocumento: data.tiposDocumento[0].id });
+          }
+
+          this.loadClientData();
+          if (forceRefresh) {
+            this.toastService.success('Datos actualizados correctamente', '¡Éxito!');
+          }
+        },
+        error: () => this.toastService.error('Error al cargar datos de la página', 'Error')
+      });
+  }
+
+  refreshData() {
+    this.homeCacheService.clearCache();
+    this.loadInitialData(true);
   }
 
   loadClientData() {
@@ -146,7 +163,7 @@ export class CustomerComponent implements OnInit, OnDestroy {
           });
 
           if (client.documentType) {
-            const type = this.tiposDocumento().find(t => 
+            const type = this.tiposDocumento().find((t: TipoDocumento) => 
               t.nombre?.toLowerCase() === client.documentType?.toLowerCase()
             );
             if (type) {
@@ -161,13 +178,19 @@ export class CustomerComponent implements OnInit, OnDestroy {
 
   loadProducts() {
     this.loadingProducts.set(true);
-    this.productService.getPagedProducts(this.currentPage(), this.pageSize(), this.searchTerm()).pipe(
-      finalize(() => this.loadingProducts.set(false))
-    ).subscribe(data => {
-      this.products.set(data.items);
-      this.totalPages.set(data.totalPages);
-      this.totalCount.set(data.totalCount);
-    });
+    this.homeCacheService.getHomeData(this.currentPage(), this.pageSize(), this.searchTerm())
+      .pipe(finalize(() => this.loadingProducts.set(false)))
+      .subscribe({
+        next: (data: HomeData) => {
+          this.products.set(data.products.items);
+          this.totalPages.set(data.products.totalPages);
+          this.totalCount.set(data.products.totalCount);
+          // Actualizamos banners y tipos de documento también por si acaso cambiaron
+          this.banners.set(data.banners.filter((b: Banner) => b.isActive).sort((a: Banner, b: Banner) => a.order - b.order));
+          this.tiposDocumento.set(data.tiposDocumento);
+        },
+        error: () => this.toastService.error('Error al cargar productos', 'Error')
+      });
   }
 
   onSearch(term: string) {
@@ -291,7 +314,6 @@ export class CustomerComponent implements OnInit, OnDestroy {
       this.router.navigate(['/login']);
       return;
     }
-    this.loadCatalogos();
     this.isCartOpen.set(false);
     this.showCheckoutModal.set(true);
   }
