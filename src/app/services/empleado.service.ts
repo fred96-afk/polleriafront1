@@ -10,7 +10,7 @@ import { PagedResponse } from '../models/product.model';
 })
 export class EmpleadoService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${enviroment.backenbaseurl}/api/Empleados`;
+  private readonly apiUrl = `${enviroment.backendbaseurl}/api/Empleados`;
 
   getEmpleados(): Observable<EmpleadoResponse[]> {
     return this.http.get<EmpleadoResponse[]>(this.apiUrl);

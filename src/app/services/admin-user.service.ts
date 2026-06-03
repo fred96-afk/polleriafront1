@@ -3,7 +3,6 @@ import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { enviroment } from '../../enviroments/enviroments.development';
 import {
-  ADMINISTRATIVE_ROLE_IDS,
   AdministrativeUser,
   getAdministrativeRoleName
 } from '../models/admin-user.model';
@@ -15,13 +14,13 @@ import { PagedResponse } from '../models/product.model';
 })
 export class AdminUserService {
   private readonly http = inject(HttpClient);
-  private readonly usersApiUrl = `${enviroment.backenbaseurl}/api/Users`;
+  private readonly usersApiUrl = `${enviroment.backendbaseurl}/api/Users`;
 
   getAdministrativeUsers(): Observable<AdministrativeUser[]> {
     return this.http.get<unknown>(this.usersApiUrl).pipe(
       map((response) => this.extractCollection(response)),
       map((users) => users.map((user) => this.normalizeUser(user)).filter((user): user is AdministrativeUser => user !== null)),
-      map((users) => users.filter((user) => ADMINISTRATIVE_ROLE_IDS.has(user.roleId)))
+      map((users) => users.filter((user) => user.roleId !== 4))
     );
   }
 
@@ -33,25 +32,23 @@ export class AdminUserService {
     return this.http.get<unknown>(`${this.usersApiUrl}/paged`, { params }).pipe(
       map((response: any) => ({
         ...response,
-        items: (response.items || []).map((user: any) => this.normalizeUser(user)).filter((user: any) => user !== null && ADMINISTRATIVE_ROLE_IDS.has(user.roleId))
+        items: (response.items || [])
+          .map((user: any) => this.normalizeUser(user))
+          .filter((user: any) => user !== null && user.roleId !== 4)
       }))
     );
   }
 
   createAdministrativeUser(request: UserRequest): Observable<void> {
-    if (!ADMINISTRATIVE_ROLE_IDS.has(request.roleId)) {
-      throw new Error('Solo se permiten roles administrativos');
-    }
-
     return this.http.post<void>(this.usersApiUrl, request);
   }
 
   updateAdministrativeUser(id: number, request: UserRequest): Observable<void> {
-    if (!ADMINISTRATIVE_ROLE_IDS.has(request.roleId)) {
-      throw new Error('Solo se permiten roles administrativos');
-    }
-
     return this.http.put<void>(`${this.usersApiUrl}/${id}`, request);
+  }
+
+  deleteAdministrativeUser(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.usersApiUrl}/${id}`);
   }
 
   private extractCollection(response: unknown): unknown[] {

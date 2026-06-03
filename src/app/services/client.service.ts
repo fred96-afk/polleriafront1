@@ -10,7 +10,7 @@ import { Observable } from 'rxjs';
 })
 export class ClientService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${enviroment.backenbaseurl}/api/Clients`;
+  private readonly apiUrl = `${enviroment.backendbaseurl}/api/Clients`;
 
   getClients(): Observable<ClientResponse[]> {
     return this.http.get<ClientResponse[]>(this.apiUrl);

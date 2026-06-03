@@ -16,7 +16,7 @@ import {
 })
 export class CatalogoService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${enviroment.backenbaseurl}/api/Catalogos`;
+  private readonly apiUrl = `${enviroment.backendbaseurl}/api/Catalogos`;
 
   getTiposDocumento(): Observable<TipoDocumento[]> {
     return this.http.get<any>(`${this.apiUrl}/tipos-documento`).pipe(

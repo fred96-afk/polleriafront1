@@ -5,8 +5,9 @@ import { finalize, Observable, Subscription } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 import { AdminUserService } from '../../services/admin-user.service';
 import { PusherService } from '../../services/pusher.service';
+import { RoleService } from '../../services/role.service';
+import { Role } from '../../models/role.model';
 import {
-  ADMINISTRATIVE_ROLE_OPTIONS,
   AdministrativeUser
 } from '../../models/admin-user.model';
 
@@ -19,11 +20,12 @@ import {
 })
 export class AdminUsersComponent implements OnInit, OnDestroy {
   private readonly adminUserService = inject(AdminUserService);
+  private readonly roleService = inject(RoleService);
   private readonly fb = inject(FormBuilder);
   private readonly toastService = inject(ToastrService);
   private readonly pusherService = inject(PusherService);
 
-  readonly administrativeRoles = ADMINISTRATIVE_ROLE_OPTIONS;
+  readonly administrativeRoles = signal<Role[]>([]);
   readonly users = signal<AdministrativeUser[]>([]);
   readonly loading = signal(false);
   readonly saving = signal(false);
@@ -57,14 +59,27 @@ export class AdminUsersComponent implements OnInit, OnDestroy {
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [Validators.required]],
-      roleId: [this.administrativeRoles[0].id, [Validators.required]]
+      roleId: [null as number | null, [Validators.required]]
     },
     { validators: this.passwordMatchValidator }
   );
 
   ngOnInit() {
+    this.loadRoles();
     this.loadUsers();
     this.subscribeToPusher();
+  }
+
+  loadRoles() {
+    this.roleService.getRoles().subscribe({
+      next: (roles) => {
+        this.administrativeRoles.set(roles);
+        if (roles.length > 0 && !this.editingId()) {
+          this.userForm.patchValue({ roleId: roles[0].id });
+        }
+      },
+      error: () => this.toastService.error('Error al cargar roles')
+    });
   }
 
   ngOnDestroy() {
@@ -146,7 +161,7 @@ export class AdminUsersComponent implements OnInit, OnDestroy {
         email: '',
         password: '',
         confirmPassword: '',
-        roleId: this.administrativeRoles[0].id
+        roleId: this.administrativeRoles()[0]?.id ?? null
       });
       this.userForm.controls.password.setValidators([Validators.required, Validators.minLength(6)]);
       this.userForm.controls.confirmPassword.setValidators([Validators.required]);
@@ -176,7 +191,7 @@ export class AdminUsersComponent implements OnInit, OnDestroy {
       name,
       email,
       password: password || undefined,
-      roleId
+      roleId: roleId!
     };
 
     const operation: Observable<void> = this.editingId()
@@ -201,5 +216,19 @@ export class AdminUsersComponent implements OnInit, OnDestroy {
         );
       }
     });
+  }
+
+  deleteUser(id: number) {
+    if (confirm('¿Estás seguro de eliminar este usuario administrativo?')) {
+      this.adminUserService.deleteAdministrativeUser(id).subscribe({
+        next: () => {
+          this.toastService.success('Usuario eliminado correctamente', 'Éxito');
+          this.loadUsers();
+        },
+        error: () => {
+          this.toastService.error('No se pudo eliminar el usuario', 'Error');
+        }
+      });
+    }
   }
 }

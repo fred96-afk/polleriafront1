@@ -9,7 +9,7 @@ import { ClienteRequest, ClienteResponse } from '../models/cliente.model';
 })
 export class ClienteService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${enviroment.backenbaseurl}/api/Clientes`;
+  private readonly apiUrl = `${enviroment.backendbaseurl}/api/Clientes`;
 
   getClientes(): Observable<ClienteResponse[]> {
     return this.http.get<ClienteResponse[]>(this.apiUrl);

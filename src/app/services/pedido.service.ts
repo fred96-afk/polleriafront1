@@ -9,7 +9,7 @@ import { PedidoRequest, PedidoResponse } from '../models/pedido.model';
 })
 export class PedidoService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${enviroment.backenbaseurl}/api/Pedidos`;
+  private readonly apiUrl = `${enviroment.backendbaseurl}/api/Pedidos`;
 
   getPedidos(): Observable<PedidoResponse[]> {
     return this.http.get<PedidoResponse[]>(this.apiUrl);

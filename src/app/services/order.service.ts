@@ -10,7 +10,7 @@ import { Observable } from 'rxjs';
 })
 export class OrderService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${enviroment.backenbaseurl}/api/Pedidos`;
+  private readonly apiUrl = `${enviroment.backendbaseurl}/api/Pedidos`;
 
   getOrders(): Observable<OrderResponse[]> {
     return this.http.get<OrderResponse[]>(this.apiUrl);
@@ -34,6 +34,10 @@ export class OrderService {
 
   getOrderTracking(id: number): Observable<OrderResponse> {
     return this.http.get<OrderResponse>(`${this.apiUrl}/rastreo/${id}`);
+  }
+
+  getOrderByTableNumber(tableNumber: string): Observable<OrderResponse> {
+    return this.http.get<OrderResponse>(`${this.apiUrl}/mesa/${tableNumber}`);
   }
 
   createOrder(request: OrderRequest): Observable<OrderResponse> {

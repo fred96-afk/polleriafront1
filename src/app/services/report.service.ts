@@ -8,7 +8,7 @@ import { Observable } from 'rxjs';
 })
 export class ReportService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${enviroment.backenbaseurl}/api/Reports`;
+  private readonly apiUrl = `${enviroment.backendbaseurl}/api/Reports`;
 
   downloadSalesPdf(startDate: string, endDate: string): Observable<Blob> {
     const params = new HttpParams()

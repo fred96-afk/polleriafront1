@@ -11,7 +11,7 @@ import { catchError, combineLatest, map, Observable, of } from 'rxjs';
 export class DashboardService {
   private readonly http = inject(HttpClient);
   private readonly clientService = inject(ClientService);
-  private readonly apiUrl = `${enviroment.backenbaseurl}/api/Dashboard`;
+  private readonly apiUrl = `${enviroment.backendbaseurl}/api/Dashboard`;
 
   getStats(): Observable<DashboardStats> {
     return combineLatest({

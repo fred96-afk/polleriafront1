@@ -9,7 +9,7 @@ import { Observable } from 'rxjs';
 })
 export class ProductService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${enviroment.backenbaseurl}/api/Products`;
+  private readonly apiUrl = `${enviroment.backendbaseurl}/api/Products`;
 
   getProducts(): Observable<ProductResponse[]> {
     return this.http.get<ProductResponse[]>(this.apiUrl);

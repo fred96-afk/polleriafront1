@@ -11,7 +11,7 @@
         </div>
 
         <div class="flex flex-wrap gap-1.5 sm:gap-2">
-          @for (role of administrativeRoles; track role.id) {
+          @for (role of administrativeRoles(); track role.id) {
             <span class="px-2.5 sm:px-3 py-1 rounded-md sm:rounded-full bg-orange-100 text-orange-700 text-[10px] sm:text-xs font-bold uppercase tracking-wide">
               {{ role.name }}
             </span>
@@ -107,14 +107,24 @@
                     </span>
                   </td>
                   <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-center">
-                    <button
-                      (click)="openModal(user)"
-                      class="inline-flex h-8 sm:h-9 items-center justify-center gap-1.5 rounded-lg bg-blue-50 px-2.5 sm:px-3 text-xs sm:text-sm font-bold text-blue-700 hover:bg-blue-100 transition-colors"
-                      title="Editar personal"
-                    >
-                      <span class="material-icons-outlined text-base sm:text-lg">edit</span>
-                      <span>Editar</span>
-                    </button>
+                    <div class="flex justify-center items-center gap-2">
+                      <button
+                        (click)="openModal(user)"
+                        class="inline-flex h-8 sm:h-9 items-center justify-center gap-1.5 rounded-lg bg-blue-50 px-2.5 sm:px-3 text-xs sm:text-sm font-bold text-blue-700 hover:bg-blue-100 transition-colors"
+                        title="Editar personal"
+                      >
+                        <span class="material-icons-outlined text-base sm:text-lg">edit</span>
+                        <span class="hidden md:inline">Editar</span>
+                      </button>
+                      <button
+                        (click)="deleteUser(user.id)"
+                        class="inline-flex h-8 sm:h-9 items-center justify-center gap-1.5 rounded-lg bg-red-50 px-2.5 sm:px-3 text-xs sm:text-sm font-bold text-red-700 hover:bg-red-100 transition-colors"
+                        title="Eliminar personal"
+                      >
+                        <span class="material-icons-outlined text-base sm:text-lg">delete</span>
+                        <span class="hidden md:inline">Eliminar</span>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               }
@@ -229,7 +239,7 @@
               class="w-full px-4 py-3 sm:py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all text-sm sm:text-base font-medium appearance-none"
               [class.border-red-500]="userForm.get('roleId')?.touched && userForm.get('roleId')?.invalid"
             >
-              @for (role of administrativeRoles; track role.id) {
+              @for (role of administrativeRoles(); track role.id) {
                 <option [ngValue]="role.id">{{ role.name }}</option>
               }
             </select>

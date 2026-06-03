@@ -9,7 +9,7 @@ import { ProductoRequest, ProductoResponse } from '../models/producto.model';
 })
 export class ProductoService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${enviroment.backenbaseurl}/api/Productos`;
+  private readonly apiUrl = `${enviroment.backendbaseurl}/api/Productos`;
 
   getProductos(): Observable<ProductoResponse[]> {
     return this.http.get<ProductoResponse[]>(this.apiUrl);

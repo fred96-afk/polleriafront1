@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { ProductService } from '../../services/product.service';
 import { OrderService } from '../../services/order.service';
 import { AuthService } from '../../services/auth.service';
@@ -22,7 +22,7 @@ interface SaleResult {
 
 @Component({
   selector: 'app-sales',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './sales.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -43,6 +43,12 @@ export class SalesComponent {
   showClientModal = signal(false);
   showCartMobile = signal(false);
   cashierName = computed(() => this.authService.displayName.toUpperCase());
+  
+  // New signals for Table management
+  tableNumber = signal<string>('');
+  currentOrderId = signal<number | null>(null);
+  searchingTable = signal(false);
+  isWaiter = computed(() => this.authService.isWaiter());
 
   clientForm = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(3)]],
@@ -53,6 +59,78 @@ export class SalesComponent {
   totalPrice = computed(() => {
     return this.cart().reduce((acc, item) => acc + (item.basePrice * item.quantity), 0);
   });
+
+  searchByTable() {
+    const table = this.tableNumber();
+    if (!table) {
+      this.toastService.warning('Ingrese un número de mesa');
+      return;
+    }
+    
+    this.searchingTable.set(true);
+    this.orderService.getOrderByTableNumber(table).pipe(
+      finalize(() => this.searchingTable.set(false))
+    ).subscribe({
+      next: (order) => {
+        this.currentOrderId.set(order.id);
+        // Map order details to cart
+        const cartItems: CartItem[] = order.details.map(d => ({
+          id: d.productId,
+          name: d.productName,
+          basePrice: d.unitPrice,
+          quantity: d.quantity,
+          imageUrl: '', 
+          description: '',
+          salePrice: d.unitPrice,
+          categoryId: 0,
+          categoryName: ''
+        }));
+        this.cart.set(cartItems);
+        this.toastService.success(`Pedido de Mesa ${table} cargado`);
+      },
+      error: () => {
+        this.toastService.error(`No se encontró pedido activo para la mesa ${table}`);
+      }
+    });
+  }
+
+  createWaiterTicket() {
+    if (this.cart().length === 0) {
+      this.toastService.warning('Agregue productos al pedido');
+      return;
+    }
+    if (!this.tableNumber()) {
+      this.toastService.warning('Ingrese el número de mesa');
+      return;
+    }
+
+    this.loading.set(true);
+    const userId = this.authService.userId;
+    const details: OrderDetailRequest[] = this.cart().map(item => ({
+      productId: item.id,
+      quantity: item.quantity
+    }));
+
+    this.orderService.createOrder({
+      userId: userId!,
+      tableNumber: this.tableNumber(),
+      isPos: true,
+      details: details,
+      customerName: `Mesa ${this.tableNumber()}`
+    }).subscribe({
+      next: (order) => {
+        this.toastService.success(`Pedido para Mesa ${this.tableNumber()} generado`);
+        this.cart.set([]);
+        this.tableNumber.set('');
+        this.currentOrderId.set(null);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        this.toastService.error('Error al generar pedido');
+        this.loading.set(false);
+      }
+    });
+  }
 
   private extractInvoicePdfUrl(invoiceResponse: unknown): string | null {
     if (!invoiceResponse || typeof invoiceResponse !== 'object') {
@@ -180,15 +258,18 @@ export class SalesComponent {
           quantity: item.quantity
         }));
 
-        return this.orderService.createOrder({
+        const orderReq: any = {
           userId: userId,
           clientId: client.id,
           isPos: true,
           details: details,
           customerName: client.name,
           documentNumber: client.documentNumber,
-          documentType: client.documentType
-        });
+          documentType: client.documentType,
+          tableNumber: this.tableNumber()
+        };
+
+        return this.orderService.createOrder(orderReq);
       }),
       switchMap(order => {
         const orderId = order.id;
@@ -223,6 +304,8 @@ export class SalesComponent {
           documentNumber: '',
           address: 'Venta POS'
         });
+        this.tableNumber.set('');
+        this.currentOrderId.set(null);
         this.showClientModal.set(false);
         this.showCartMobile.set(false);
         this.loading.set(false);

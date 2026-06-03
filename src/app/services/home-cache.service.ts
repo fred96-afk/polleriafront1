@@ -24,19 +24,24 @@ export class HomeCacheService {
   private readonly cache = inject(HttpCacheService);
 
   private readonly CACHE_KEY = 'home_main_data';
+  private isFirstLoadInSession = true;
 
   getHomeData(page: number, size: number, term: string = '', forceRefresh = false): Observable<HomeData> {
-    // Solo cacheamos la primera página sin búsqueda por defecto para "Home Data"
-    // Pero si quieren cachear todo, podríamos usar una clave compuesta
     const cacheKey = `${this.CACHE_KEY}_${page}_${size}_${term}`;
     
-    if (!forceRefresh) {
+    // Si es la primera vez que se carga el servicio (recarga de página real), forzamos refresh
+    const shouldRefresh = forceRefresh || this.isFirstLoadInSession;
+    
+    if (!shouldRefresh) {
       const cached = this.cache.get<HomeData>(cacheKey);
       if (cached) {
         console.log('Serving home data from cache:', cacheKey);
         return of(cached);
       }
     }
+
+    // Una vez que pase la primera carga, las navegaciones internas usarán el cache
+    this.isFirstLoadInSession = false;
 
     return forkJoin({
       banners: this.bannerService.getBanners(),

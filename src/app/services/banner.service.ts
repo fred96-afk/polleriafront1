@@ -9,7 +9,7 @@ import { Banner, PagedResponse } from '../models/banner.model';
 })
 export class BannerService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${enviroment.backenbaseurl}/api/Banners`;
+  private readonly apiUrl = `${enviroment.backendbaseurl}/api/Banners`;
 
   getBanners(): Observable<Banner[]> {
     return this.http.get<Banner[]>(this.apiUrl);

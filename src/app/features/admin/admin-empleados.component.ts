@@ -162,10 +162,10 @@ export class AdminEmpleadosComponent implements OnInit {
   }
 
   deleteEmpleado(id: number) {
-    if (confirm('¿Estás seguro de eliminar o inhabilitar este empleado?')) {
+    if (confirm('¿Estás seguro de eliminar este empleado?')) {
       this.empleadoService.deleteEmpleado(id).subscribe({
         next: () => {
-          this.toastService.success('Empleado inhabilitado', '¡Éxito!');
+          this.toastService.success('Empleado eliminado', '¡Éxito!');
           this.loadEmpleados();
         },
         error: (err) => {

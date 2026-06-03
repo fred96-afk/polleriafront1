@@ -25,6 +25,7 @@ export interface OrderResponse {
   customerName?: string | null;
   customerAddress?: string | null;
   customerPhone?: string | null;
+  tableNumber?: string | null;
 }
 
 export interface OrderDetailRequest {
@@ -46,4 +47,5 @@ export interface OrderRequest {
   documentType?: string | null;
   customerEmail?: string | null;
   isPickup?: boolean;
+  tableNumber?: string | null;
 }

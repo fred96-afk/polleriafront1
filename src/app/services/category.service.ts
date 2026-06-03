@@ -9,7 +9,7 @@ import { Observable } from 'rxjs';
 })
 export class CategoryService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${enviroment.backenbaseurl}/api/Categories`;
+  private readonly apiUrl = `${enviroment.backendbaseurl}/api/Categories`;
 
   getCategories(): Observable<CategoryResponse[]> {
     return this.http.get<CategoryResponse[]>(this.apiUrl);

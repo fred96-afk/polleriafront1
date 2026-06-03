@@ -31,7 +31,7 @@ interface UserToken {
 })
 export class AuthService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${enviroment.backenbaseurl}/api/Auth`;
+  private readonly apiUrl = `${enviroment.backendbaseurl}/api/Auth`;
   
   private token = signal<string | null>(localStorage.getItem('token'));
   
