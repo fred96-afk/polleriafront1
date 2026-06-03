@@ -65,7 +65,8 @@ export class ResetPasswordComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error en reset password:', err);
-        this.toastService.error('Hubo un problema al restablecer la contraseña. El enlace puede haber expirado.', 'Error');
+        const errorMsg = typeof err.error === 'string' ? err.error : 'Hubo un problema al restablecer la contraseña. El enlace puede haber expirado.';
+        this.toastService.error(errorMsg, 'Error');
       }
     });
   }
