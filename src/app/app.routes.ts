@@ -24,7 +24,8 @@ import { AdminEmpleadosComponent } from './features/admin/admin-empleados.compon
 import { AdminReportsComponent } from './features/admin/admin-reports.component';
 import { AdminDashboardComponent } from './features/admin/admin-dashboard.component';
 import { AdminRolesComponent } from './features/admin/admin-roles.component';
-import { adminDashboardGuard, deliveryGuard, internalAccessGuard, posGuard } from './guards/role.guard';
+import { ChefOrdersComponent } from './features/chef/chef-orders.component';
+import { adminDashboardGuard, chefGuard, deliveryGuard, internalAccessGuard, posGuard } from './guards/role.guard';
 
 export const routes: Routes = [
   // Parte Pública (Cliente)
@@ -50,6 +51,7 @@ export const routes: Routes = [
     canActivate: [internalAccessGuard],
     children: [
       { path: 'sales', component: SalesComponent, canActivate: [posGuard] },
+      { path: 'chef', component: ChefOrdersComponent, canActivate: [chefGuard] },
       { 
         path: 'dashboard', 
         component: AdminComponent,

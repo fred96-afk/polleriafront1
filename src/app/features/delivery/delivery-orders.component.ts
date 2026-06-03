@@ -34,7 +34,7 @@ export class DeliveryOrdersComponent implements OnInit, OnDestroy {
   selectedOrderId = signal<number | null>(null);
 
   availableOrders = computed(() => 
-    this.orders().filter(o => !o.deliveryUserId && o.status?.toLowerCase() !== 'delivered' && o.status?.toLowerCase() !== 'cancelled')
+    this.orders().filter(o => !o.deliveryUserId && o.status?.toLowerCase() === 'ready')
   );
 
   myDeliveries = computed(() => {
@@ -169,15 +169,21 @@ export class DeliveryOrdersComponent implements OnInit, OnDestroy {
   getStatusLabel(status: string | null | undefined): string {
     switch (status?.toString().toLowerCase()) {
       case '1':
-      case 'pendiente': return 'Pendiente';
+      case 'pendiente':
+      case 'pending': return 'Pendiente';
       case '2':
-      case 'en preparacion': return 'Preparando';
+      case 'en preparacion':
+      case 'preparing': return 'Preparando';
+      case 'ready': return 'Listo para envío';
       case '3':
-      case 'en camino': return 'En camino';
+      case 'en camino':
+      case 'ontheway': return 'En camino';
       case '4':
-      case 'entregado': return 'Entregado';
+      case 'entregado':
+      case 'delivered': return 'Entregado';
       case '5':
-      case 'anulado': return 'Cancelado';
+      case 'anulado':
+      case 'cancelled': return 'Cancelado';
       default: return status || 'Recibido';
     }
   }
@@ -185,15 +191,21 @@ export class DeliveryOrdersComponent implements OnInit, OnDestroy {
   getStatusClass(status: string | null | undefined): string {
     switch (status?.toString().toLowerCase()) {
       case '1':
-      case 'pendiente': return 'bg-orange-100 text-orange-700';
+      case 'pendiente':
+      case 'pending': return 'bg-orange-100 text-orange-700';
       case '2':
-      case 'en preparacion': return 'bg-blue-100 text-blue-700';
+      case 'en preparacion':
+      case 'preparing': return 'bg-blue-100 text-blue-700';
+      case 'ready': return 'bg-yellow-100 text-yellow-700';
       case '3':
-      case 'en camino': return 'bg-purple-100 text-purple-700';
+      case 'en camino':
+      case 'ontheway': return 'bg-purple-100 text-purple-700';
       case '4':
-      case 'entregado': return 'bg-green-100 text-green-700';
+      case 'entregado':
+      case 'delivered': return 'bg-green-100 text-green-700';
       case '5':
-      case 'anulado': return 'bg-red-100 text-red-700';
+      case 'anulado':
+      case 'cancelled': return 'bg-red-100 text-red-700';
       default: return 'bg-gray-100 text-gray-700';
     }
   }

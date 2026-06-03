@@ -76,3 +76,18 @@ export const posGuard: CanActivateFn = () => {
 
   return denyAccess(router, authService, '/admin/login');
 };
+
+export const chefGuard: CanActivateFn = () => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  if (!authService.isAuthenticated()) {
+    return router.createUrlTree(['/admin/login']);
+  }
+
+  if (authService.canAccessKitchen()) {
+    return true;
+  }
+
+  return denyAccess(router, authService, '/admin/login');
+};

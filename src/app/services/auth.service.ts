@@ -142,6 +142,26 @@ export class AuthService {
     return this.parseNumericClaim(rawId);
   }
 
+  get permissions(): string[] {
+    const user = this.currentUser();
+    if (!user) return [];
+
+    // Buscar permisos en las claves comunes de JWT
+    const perms = user['permissions'] || 
+                  user['Permission'] || 
+                  user['permission'] ||
+                  user['http://schemas.microsoft.com/ws/2008/06/identity/claims/userdata'];
+
+    if (Array.isArray(perms)) return perms;
+    if (typeof perms === 'string' && perms.trim() !== '') return [perms.trim()];
+    
+    return [];
+  }
+
+  hasAnyPermission(): boolean {
+    return this.permissions.length > 0;
+  }
+
   get clientId(): number | null {
     const user = this.currentUser();
     if (!user) {
@@ -230,12 +250,24 @@ export class AuthService {
     return name.includes('delivery') || id === 3;
   }
 
+  isChef(): boolean {
+    const name = this.roleName?.toLowerCase() || '';
+    const id = this.roleId;
+    // Asumimos ID 5 para Chef o por nombre
+    return name.includes('chef') || name.includes('cocina') || id === 5;
+  }
+
   canAccessAdminDashboard(): boolean {
-    return this.isAdministrator();
+    // Bloquear si no tiene permisos, permitir si tiene al menos uno
+    return this.hasAnyPermission() || this.isAdministrator();
   }
 
   canAccessPos(): boolean {
-    // Permitir acceso al POS tanto a mozos como a administradores
-    return this.isWaiter() || this.isAdministrator();
+    // Permitir acceso al POS si tiene permisos o es admin/mozo
+    return this.hasAnyPermission() || this.isWaiter() || this.isAdministrator();
+  }
+
+  canAccessKitchen(): boolean {
+    return this.hasAnyPermission() || this.isChef() || this.isAdministrator();
   }
 }
