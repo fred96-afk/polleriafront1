@@ -31,7 +31,7 @@ export class ChefOrdersComponent implements OnInit, OnDestroy {
   );
 
   preparingOrders = computed(() => 
-    this.orders().filter(o => o.status?.toLowerCase() === 'preparing' || o.status === '2')
+    this.orders().filter(o => o.status?.toLowerCase() === 'inpreparation' || o.status === '2')
   );
 
   ngOnInit() {
@@ -71,7 +71,7 @@ export class ChefOrdersComponent implements OnInit, OnDestroy {
   }
 
   acceptOrder(id: number) {
-    this.orderService.updateOrderStatus(id, 'Preparing').subscribe({
+    this.orderService.updateOrderStatus(id, 'InPreparation').subscribe({
       next: () => {
         this.toastService.success('Pedido en preparación');
         this.loadOrders();

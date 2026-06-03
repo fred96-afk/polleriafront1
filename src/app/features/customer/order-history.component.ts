@@ -57,6 +57,7 @@ export class OrderHistoryComponent implements OnInit {
   getStatusLabel(status: string | null | undefined): string {
     switch (status?.toLowerCase()) {
       case 'pending': return 'Pendiente';
+      case 'inpreparation':
       case 'preparing': return 'Preparando';
       case 'onway': return 'En camino';
       case 'delivered': return 'Entregado';
@@ -68,6 +69,7 @@ export class OrderHistoryComponent implements OnInit {
   getStatusClass(status: string | null | undefined): string {
     switch (status?.toLowerCase()) {
       case 'pending': return 'bg-orange-100 text-orange-700';
+      case 'inpreparation':
       case 'preparing': return 'bg-blue-100 text-blue-700';
       case 'onway': return 'bg-purple-100 text-purple-700';
       case 'delivered': return 'bg-green-100 text-green-700';

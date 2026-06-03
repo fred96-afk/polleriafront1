@@ -126,7 +126,7 @@ export class DeliveryOrdersComponent implements OnInit, OnDestroy {
     // El backend en .NET usa "OnTheWay" (con 'The') para el estado en camino
     const backendStatus = technicalStatus === 'onway' ? 'OnTheWay' : 
                           technicalStatus === 'delivered' ? 'Delivered' : 
-                          technicalStatus === 'preparing' ? 'Preparing' :
+                          technicalStatus === 'preparing' ? 'InPreparation' :
                           technicalStatus === 'pending' ? 'Pending' :
                           technicalStatus === 'cancelled' ? 'Cancelled' : technicalStatus;
 
@@ -173,6 +173,7 @@ export class DeliveryOrdersComponent implements OnInit, OnDestroy {
       case 'pending': return 'Pendiente';
       case '2':
       case 'en preparacion':
+      case 'inpreparation':
       case 'preparing': return 'Preparando';
       case 'ready': return 'Listo para envío';
       case '3':
@@ -195,6 +196,7 @@ export class DeliveryOrdersComponent implements OnInit, OnDestroy {
       case 'pending': return 'bg-orange-100 text-orange-700';
       case '2':
       case 'en preparacion':
+      case 'inpreparation':
       case 'preparing': return 'bg-blue-100 text-blue-700';
       case 'ready': return 'bg-yellow-100 text-yellow-700';
       case '3':
