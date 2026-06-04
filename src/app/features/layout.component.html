@@ -44,14 +44,14 @@
     </div>
 
     <nav class="mt-2 flex flex-col space-y-1 px-3">
-      @if (canAccessPos()) {
+      @if (authService.isWaiter() || authService.isAdministrator()) {
         <a routerLink="/admin/sales" routerLinkActive="bg-orange-600 shadow-md" (click)="closeSidebar()" class="flex items-center p-3 hover:bg-orange-600 rounded-lg transition-colors group">
           <span class="material-icons-outlined mr-3 text-orange-200 group-hover:text-white transition-colors">point_of_sale</span> 
           <span class="font-medium">Punto de Venta</span>
         </a>
       }
 
-      @if (authService.canAccessKitchen()) {
+      @if (authService.isChef() || authService.isAdministrator()) {
         <a routerLink="/admin/chef" routerLinkActive="bg-orange-600 shadow-md" (click)="closeSidebar()" class="flex items-center p-3 hover:bg-orange-600 rounded-lg transition-colors group">
           <span class="material-icons-outlined mr-3 text-orange-200 group-hover:text-white transition-colors">restaurant_menu</span> 
           <span class="font-medium">Cocina</span>
