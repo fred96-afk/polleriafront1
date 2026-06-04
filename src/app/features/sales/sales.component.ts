@@ -42,7 +42,7 @@ export class SalesComponent {
   searchingDocument = signal(false);
   showClientModal = signal(false);
   showCartMobile = signal(false);
-  cashierName = computed(() => this.authService.displayName.toUpperCase());
+  cajeroNombre = computed(() => this.authService.displayName.toUpperCase());
   
   // New signals for Table management
   tableNumber = signal<string>('');

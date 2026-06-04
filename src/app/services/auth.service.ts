@@ -244,6 +244,12 @@ export class AuthService {
     return name.includes('mozo') || name.includes('waiter') || id === 2;
   }
 
+  isCajero(): boolean {
+    const name = this.roleName?.toLowerCase() || '';
+    const id = this.roleId;
+    return name.includes('cajero') || name.includes('cashier') || id === 4;
+  }
+
   isDelivery(): boolean {
     const name = this.roleName?.toLowerCase() || '';
     const id = this.roleId;
@@ -263,8 +269,8 @@ export class AuthService {
   }
 
   canAccessPos(): boolean {
-    // Permitir acceso al POS si tiene permisos o es admin/mozo
-    return this.hasAnyPermission() || this.isWaiter() || this.isAdministrator();
+    // Permitir acceso al POS si tiene permisos o es admin/mozo/cajero
+    return this.hasAnyPermission() || this.isWaiter() || this.isCajero() || this.isAdministrator();
   }
 
   canAccessKitchen(): boolean {
